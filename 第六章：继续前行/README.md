@@ -161,7 +161,7 @@ if ($this->isBooted()) {
 
 输出结果：
 
-![](./images/test_04.png)
+![](../images/test_04.png)
 【图6.1】
 
 第二次：
@@ -175,7 +175,7 @@ if ($this->isBooted()) {
 
 输出结果：
 
-![](./images/test_05.png)
+![](../images/test_05.png)
 【图6.2】
 
 由于输出的字符串太长，我们仅截取部分显示在这里。

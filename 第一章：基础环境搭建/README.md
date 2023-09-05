@@ -6,7 +6,7 @@
 
 下面是本文安装的Laravel框架版本：
 
-![](./images/test_03.png)
+![](../images/test_03.png)
 【图1.1】
 
 composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "5.8.*"`
@@ -102,7 +102,7 @@ server {
 
 默认情况下完成上述配置后，访问的主页应该像下面这样：
 
-![](./images./test_11.png)
+![](../images./test_11.png)
 【图1.2】
 
 ### 关于Nginx重定向
