@@ -207,6 +207,7 @@ public function instance($abstract, $instance)
 那么，在框架需要用到路径的地方，必然会引用到这些键值对。如何验证呢？很简单，使用phpstorm编辑器的快捷键：ctrl + shift + f，全局搜索即可。我们以"path.storage"为例，在我们的blog项目中，全局搜索"path.storage"，会发现搜索到的结果如下：
 
 ![](../images/pths.png)
+
 【图4.1】
 
 点开helpers.php文件中的第846行代码，追踪到下面这个方法：

@@ -353,6 +353,7 @@ exit;
 ````
 
 ![](../images/test_00.png)
+
 【图5.1】
 
 > isInstantible方法是检测对象能否实例化的，能则返回true，不能则返回false
@@ -374,6 +375,7 @@ exit;
 ````
 
 ![](../images/test_01.png)
+
 【图5.2】
 
 > getConstructor方法返回对象的构造函数信息，如果对象没有定义构造函数，则返回NULL
@@ -394,6 +396,7 @@ exit;
 ````
 
 ![](../images/test_02.png)
+
 【图5.3】
 
 > $constructor的getParameters方法返回构造函数需要的参数信息

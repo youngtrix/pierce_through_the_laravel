@@ -25,6 +25,7 @@ $app = new Illuminate\Foundation\Application(
 我们看到，这里直接实例化了一个Application对象，如果没有之前的包含autoload.php文件语句，这里肯定会报错。一个简单的验证方法是，注释`require __DIR__.'/../vendor/autoload.php`语句，直接刷新页面，报错：
 
 ![](../images/error_01.png)
+
 【图3.1】
 
 继续追踪autoload.php中的代码，最终可以发现，composer使用了`spl_autoload_register`这个核心函数，来完成对PHP类的自动加载。
