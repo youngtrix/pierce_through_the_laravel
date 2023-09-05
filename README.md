@@ -1,2 +1,12 @@
-# pierce_through_laravel
-A book explain a complete http request's life cycle in laravel framwork
+# 穿透Laravel
+## 引言
+近几年来Laravel在PHP领域大放异彩，逐渐成为PHP开发框架中的中流砥柱。
+这个系列的文章, 会带你一起探知Laravel框架底层的实现细节。与其他框架相比，Laravel的设计理念确实更为先进(服务、容器、依赖注入、facade。。。)，初读代码时会感觉代码晦涩难懂，而一旦弄清了整套框架的基础结构，你就会惊叹于作者精巧的构思和对面向对象编程娴熟的驾驭能力。
+
+下面是【穿透Laravel】这个系列文章对应的思维导图：
+
+![](./images/laravel.png)
+
+【图0.1】
+
+
