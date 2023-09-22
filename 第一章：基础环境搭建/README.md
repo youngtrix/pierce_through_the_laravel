@@ -134,9 +134,9 @@ server {
 现在假设用户在浏览器中输入:http://dev.blog.z/test/index
 根据上面这个配置, nginx会进行怎样的处理呢？
 
-- 1) 首先nginx读取路径中的uri部分：/test/index，try files指令的意思是优先读取相对应目录下的文件，读取不到则丢弃该请求，并重新发起一个子请求。
-- 2) 由于/home/www/www/blog/public/下没有test/index文件夹，因此服务器会发起一个内部子请求到/home/www/www/blog/public/index.php
-- 3) 由于try files指令中index.php后面携带了?$query_string，因此请求发送到index.php后，在服务端PHP通过`$_SERVER['REQUEST_URI']`语句获取到的值为/test/index
+- 首先nginx读取路径中的uri部分：/test/index，try files指令的意思是优先读取相对应目录下的文件，读取不到则丢弃该请求，并重新发起一个子请求。
+- 由于/home/www/www/blog/public/下没有test/index文件夹，因此服务器会发起一个内部子请求到/home/www/www/blog/public/index.php
+- 由于try files指令中index.php后面携带了?$query_string，因此请求发送到index.php后，在服务端PHP通过`$_SERVER['REQUEST_URI']`语句获取到的值为/test/index
 
 由此, 我们可以猜想Laravel框架在路由解析这一块使用的是分析`$_SERVER['REQUEST_URI']`结果, 和ThinkPHP3中分析path_info或者Phalcon中直接将uri放在_url=后作为重定向地址不同。
 
