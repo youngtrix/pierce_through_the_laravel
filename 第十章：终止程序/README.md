@@ -110,5 +110,3 @@ public function terminate()
 程序并不会输出ccc，而是正常显示首页：
 
 ![](../images/test_11.png)
-
-OVER.

@@ -809,7 +809,7 @@ public function boot()
 
 我们看到，这部分主要是处理app的两个回调数组(一个是"启动中回调数组"保存的事件，一个是"启动后回调数组“保存的事件)，还会调用各个ServiceProvider类的bootProvider方法，并且将容器app的成员变量booted设置为true(标记app已经启动)。
 
-现在请大家回到这一节的开头，我们终于分析完了sendRequestThroughRouter方法中的下面这一行语句：
+现在请大家回到这一章的开头，我们终于分析完了sendRequestThroughRouter方法中的下面这一行语句：
 
 ```php
 $this->bootstrap();

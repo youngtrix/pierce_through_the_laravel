@@ -87,7 +87,7 @@ public function register($provider, $force = false)
 
 > vendor/laravel/framework/src/Illuminate/Foundation/Application.php
 
-要通读这个方法的所有代码，请参考【附录六】。在这一节中，我们关注的核心代码是下面这句：
+要通读这个方法的所有代码，请参考【附录六】。在这一章中，我们关注的核心代码是下面这句：
 
 ````php
 $provider->register();
@@ -184,7 +184,7 @@ if ($this->isBooted()) {
 
 很明显，register方法至少被执行了两次：一次是应用启动时，一次是应用启动后。而且我们发现了一个比较奇怪的现象：第二次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？
 
-要了解事情的真相，还得从var_dump打印的内容开始入手，按照我们的猜想，应用启动后，输出一个provider对象信息后，程序马上就退出(exit)了。没有道理有这么明显的延时。
+要了解事情的真相，还得从var_dump打印的内容开始入手，按照我们的猜想，应用启动后，输出一个provider对象信息后，程序马上就退出(exit)了，没有道理有这么明显的延时。
 
 现在我们来仔细查看var_dump语句输出的内容：
 
@@ -429,7 +429,7 @@ public function alias($abstract, $alias)
 
 这里面的逻辑也很简单，就是对当前对象的aliases和abstractAliases成员变量进行赋值。
 
-至此，我们终于讲完了【艰难的开始】这一节中说的全部四个步骤：
+至此，我们终于讲完了【艰难的开始】这一章中说的全部四个步骤：
 
 - ~~设置基础目录路径~~
 - ~~注册基础绑定~~

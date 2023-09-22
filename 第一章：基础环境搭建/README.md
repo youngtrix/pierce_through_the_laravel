@@ -142,5 +142,5 @@ server {
 
 ### 思考
 
-1) 如果public下面有test/index/index.htm文件存在, 浏览器直接访问http://dev.blog.z/test/index会发生什么？
+1) 如果public下面有test/index/index.htm文件存在, 浏览器直接访问http://dev.blog.z/test/index 会发生什么？
 2) 关于本文末尾提到的路由解析猜想，如何验证？

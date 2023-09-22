@@ -1,6 +1,6 @@
 ## 第九章：渲染页面
 
-这一节，我们实际上只需要分析一条语句：
+这一章，我们实际上只需要分析一条语句：
 
 ```php
 $response->send();
@@ -93,5 +93,5 @@ public function sendContent()
 
 > vendor/symfony/http-foundation/Response.php
 
-这个方法中的代码简单解释就是：输出当前对象的content成员变量值并返回当前对象。至于content变量的内容是什么时候赋值的，这和上一节我们讲的route类中的run方法相关。
+这个方法中的代码简单解释就是：输出当前对象的content成员变量值并返回当前对象。至于content变量的内容是什么时候赋值的，这和上一章我们讲的route类中的run方法相关。
 

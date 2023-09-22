@@ -1,4 +1,18 @@
 ## 第三章：实现自动加载
+```php
+<?php
+
+/**
+ * Laravel - A PHP Framework For Web Artisans
+ *
+ * @package  Laravel
+ * @author   Taylor Otwell <taylor@laravel.com>
+ */
+
+define('LARAVEL_START', microtime(true));
+...
+... ...
+```
 
 第一行代码，只是简单定义了一个全局常量，并将其值设置为当前时间的时间戳 + 微秒数(小数点后4位)。这是方便在合适的地方计算代码运行时间的一个常量。值得注意的是，我们在框架内全局搜索"LARAVEL_START"关键词时，并没有任何发现，说明这行代码是框架预留的，在5.8.38版本中并没有实际的用处。
 

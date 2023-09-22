@@ -211,7 +211,7 @@ class HomeController extends Controller
 Route::get('/home', 'HomeController@index');
 ```
 
-在浏览器中访问下面这个URL：http://dev.blog.z/home，结果是这样的：
+在浏览器中访问下面这个URL：http://dev.blog.z/home， 结果是这样的：
 
 ```
 object(App\Http\Controllers\Money)#240 (1) { ["amount":"App\Http\Controllers\Money":private]=> float(0.21) } {"a":1,"b":2}
@@ -296,7 +296,7 @@ public function build($concrete)
 
 上面这段代码，再次使用了PHP中比较生僻的用法：**反射**。什么场景下，我们需要使用反射呢？比如，我们事先定义好了一个类，类中包含类的各个成员变量的定义和初始化，类的构造方法，公有方法和私有方法、保护方法等等。此时，仅告诉你一个类名而不告诉你类中的任何细节，你如何才能完成实例化类的任务呢？因为类的实例化过程中，可能涉及到构造函数的调用，而构造函数的调用过程又可能需要传参。如果不使用反射，根本无从下手，有了反射就好办了。
 
-关于反射的详细论述，可以阅读PHP手册上的这个链接：https://www.php.net/manual/zh/book.reflection.php
+关于反射的详细资料，可以阅读PHP手册上的这个链接：https://www.php.net/manual/zh/book.reflection.php
 
 接下来，我们结合一个实例，来理解这部分代码中所有和反射有关的类和方法。
 
@@ -336,7 +336,7 @@ class  Student
 }
 ````
 
-首先我们将上面的代码单独保存为一个php文件，命名为base.php。然后我们再编写一个test.php的测试文件，代码如下：
+首先我们将上面的代码单独保存为一个php文件，命名为base.php。然后我们再编写一个test_88.php的测试文件，代码如下：
 
 ````php
 <?php
@@ -358,7 +358,7 @@ exit;
 
 > isInstantible方法是检测对象能否实例化的，能则返回true，不能则返回false
 
-接下来我们继续改写test.php：
+接下来我们继续改写test_88.php：
 
 ````php
 <?php
@@ -380,7 +380,7 @@ exit;
 
 > getConstructor方法返回对象的构造函数信息，如果对象没有定义构造函数，则返回NULL
 
-继续改写test.php：
+继续改写test_88.php：
 
 ````php
 <?php

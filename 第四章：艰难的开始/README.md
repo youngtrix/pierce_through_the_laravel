@@ -4,6 +4,8 @@
 
 ```php
 $app = require_once __DIR__.'/../bootstrap/app.php';
+...
+... ...
 ```
 
 追踪app.php源码：
