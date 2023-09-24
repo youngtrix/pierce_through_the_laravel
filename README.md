@@ -1,4 +1,6 @@
 # 穿透Laravel
+在线阅读链接：http://www.idocloud.net/pttl/index.html
+
 ![](./images/pttl_cover.png)
 ## 引言
 近几年来Laravel在PHP领域大放异彩，逐渐成为PHP开发框架中的中流砥柱。
