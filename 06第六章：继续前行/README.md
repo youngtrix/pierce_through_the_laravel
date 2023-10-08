@@ -426,6 +426,7 @@ public function alias($abstract, $alias)
     $this->abstractAliases[$abstract][] = $alias;
 }
 ````
+> vendor/laravel/framework/src/Illuminate/Foundation/Application.php
 
 这里面的逻辑也很简单，就是对当前对象的aliases和abstractAliases成员变量进行赋值。
 

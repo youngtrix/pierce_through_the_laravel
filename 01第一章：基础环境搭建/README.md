@@ -9,14 +9,17 @@
 ![](../images/test_03.png)
 
 【图1.1】
+> 如果读者本地的Laravel版本不是5.8.38，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
 
+### composer安装
 composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "5.8.*"`
 
 > 上述命令中的blog，实际上是我们安装完laravel框架后项目的文件夹名称
 
+### .env配置
 通常，当我们使用composer执行完上述命令后，blog应用并不是立即可用的，你还需要做一些必要的配置：
 
-.env配置：
+源文件路径：blog/.env
 
 ```
 APP_NAME=Blog
@@ -75,7 +78,7 @@ MIX_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 >
 >  由于我们分析的代码不涉及读取数据库的任何操作，上述配置仍可继续简化（将"DB_"为前缀的配置项全部删除或注释）
 
-nginx站点配置:
+### nginx站点配置
 
 ```nginx
 server {

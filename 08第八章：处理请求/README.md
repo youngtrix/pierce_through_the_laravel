@@ -165,7 +165,7 @@ public function bootstrapWith(array $bootstrappers)
 }
 ````
 
-> vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php
+> vendor/laravel/framework/src/Illuminate/Foundation/Application.php
 
 到这里，我们不得不去弄清楚$bootstrappers数组中包含了哪些内容，在文件vendor\laravel\framework\src\Illuminate\Foundation\Http\Kernel.php中，我们能看到这个变量的初始化代码：
 
@@ -845,7 +845,7 @@ public function __construct(Container $container = null)
 }
 ```
 
-> vendor/laravel/framework/src/Illuminate/Routing/Pipeline.php
+> vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php
 
 很简单，这里只是将容器app挂载到自身的保护成员container上。
 
