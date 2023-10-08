@@ -656,7 +656,7 @@ return [
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => env('DB_DATABASE', 'forge'),
             'username' => env('DB_USERNAME', 'forge'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
@@ -938,16 +938,28 @@ public function __construct(Application $app, Router $router)
 {
     $this->app = $app;
     $this->router = $router;
+	
+	$this->syncMiddlewareToRouter();
+}
+```
+syncMiddlewareToRouter:
+```php
+/**
+ * Sync the current state of the middleware to the router.
+ *
+ * @return void
+ */
+protected function syncMiddlewareToRouter()
+{
+	$this->router->middlewarePriority = $this->middlewarePriority;
 
-    $router->middlewarePriority = $this->middlewarePriority;
+	foreach ($this->middlewareGroups as $key => $middleware) {
+		$this->router->middlewareGroup($key, $middleware);
+	}
 
-    foreach ($this->middlewareGroups as $key => $middleware) {
-        $router->middlewareGroup($key, $middleware);
-    }
-
-    foreach ($this->routeMiddleware as $key => $middleware) {
-        $router->aliasMiddleware($key, $middleware);
-    }
+	foreach ($this->routeMiddleware as $key => $middleware) {
+		$this->router->aliasMiddleware($key, $middleware);
+	}
 }
 ```
 

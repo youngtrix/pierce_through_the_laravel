@@ -248,8 +248,12 @@ public function build($concrete)
     if ($concrete instanceof Closure) {
         return $concrete($this, $this->getLastParameterOverride());
     }
-
-    $reflector = new ReflectionClass($concrete);
+	
+	try {
+		$reflector = new ReflectionClass($concrete);
+	} catch (ReflectionException $e) {
+		throw new BindingResolutionException("Target class [$concrete] does not exist.", 0, $e);
+	}
 
     // If the type is not instantiable, the developer is attempting to resolve
     // an abstract type such as an Interface or Abstract Class and there is
@@ -423,7 +427,11 @@ public function build($concrete)
         return $concrete($this, $this->getLastParameterOverride());
     }
 
-    $reflector = new ReflectionClass($concrete);
+	try {
+		$reflector = new ReflectionClass($concrete);
+	} catch (ReflectionException $e) {
+		throw new BindingResolutionException("Target class [$concrete] does not exist.", 0, $e);
+	}
 
     // If the type is not instantiable, the developer is attempting to resolve
     // an abstract type such as an Interface or Abstract Class and there is

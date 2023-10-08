@@ -76,7 +76,7 @@ class Kernel extends HttpKernel
 
         'api' => [
             'throttle:60,1',
-            'bindings',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
 
@@ -94,6 +94,7 @@ class Kernel extends HttpKernel
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
@@ -110,6 +111,7 @@ class Kernel extends HttpKernel
         \Illuminate\Session\Middleware\StartSession::class,
         \Illuminate\View\Middleware\ShareErrorsFromSession::class,
         \App\Http\Middleware\Authenticate::class,
+        \Illuminate\Routing\Middleware\ThrottleRequests::class,
         \Illuminate\Session\Middleware\AuthenticateSession::class,
         \Illuminate\Routing\Middleware\SubstituteBindings::class,
         \Illuminate\Auth\Middleware\Authorize::class,
@@ -127,14 +129,16 @@ class Kernel extends HttpKernel
 namespace Illuminate\Foundation\Http;
 
 use Exception;
-use Throwable;
-use Illuminate\Routing\Router;
-use Illuminate\Routing\Pipeline;
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
+use Illuminate\Foundation\Http\Events\RequestHandled;
+use Illuminate\Routing\Pipeline;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Facade;
+use InvalidArgumentException;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Throwable;
 
 class Kernel implements KernelContract
 {
@@ -215,15 +219,7 @@ class Kernel implements KernelContract
         $this->app = $app;
         $this->router = $router;
 
-        $router->middlewarePriority = $this->middlewarePriority;
-
-        foreach ($this->middlewareGroups as $key => $middleware) {
-            $router->middlewareGroup($key, $middleware);
-        }
-
-        foreach ($this->routeMiddleware as $key => $middleware) {
-            $router->aliasMiddleware($key, $middleware);
-        }
+        $this->syncMiddlewareToRouter();
     }
 
     /**
@@ -249,7 +245,7 @@ class Kernel implements KernelContract
         }
 
         $this->app['events']->dispatch(
-            new Events\RequestHandled($request, $response)
+            new RequestHandled($request, $response)
         );
 
         return $response;
@@ -415,6 +411,106 @@ class Kernel implements KernelContract
         }
 
         return $this;
+    }
+
+    /**
+     * Prepend the given middleware to the given middleware group.
+     *
+     * @param  string  $group
+     * @param  string  $middleware
+     * @return $this
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function prependMiddlewareToGroup($group, $middleware)
+    {
+        if (! isset($this->middlewareGroups[$group])) {
+            throw new InvalidArgumentException("The [{$group}] middleware group has not been defined.");
+        }
+
+        if (array_search($middleware, $this->middlewareGroups[$group]) === false) {
+            array_unshift($this->middlewareGroups[$group], $middleware);
+        }
+
+        $this->syncMiddlewareToRouter();
+
+        return $this;
+    }
+
+    /**
+     * Append the given middleware to the given middleware group.
+     *
+     * @param  string  $group
+     * @param  string  $middleware
+     * @return $this
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function appendMiddlewareToGroup($group, $middleware)
+    {
+        if (! isset($this->middlewareGroups[$group])) {
+            throw new InvalidArgumentException("The [{$group}] middleware group has not been defined.");
+        }
+
+        if (array_search($middleware, $this->middlewareGroups[$group]) === false) {
+            $this->middlewareGroups[$group][] = $middleware;
+        }
+
+        $this->syncMiddlewareToRouter();
+
+        return $this;
+    }
+
+    /**
+     * Prepend the given middleware to the middleware priority list.
+     *
+     * @param  string  $middleware
+     * @return $this
+     */
+    public function prependToMiddlewarePriority($middleware)
+    {
+        if (! in_array($middleware, $this->middlewarePriority)) {
+            array_unshift($this->middlewarePriority, $middleware);
+        }
+
+        $this->syncMiddlewareToRouter();
+
+        return $this;
+    }
+
+    /**
+     * Append the given middleware to the middleware priority list.
+     *
+     * @param  string  $middleware
+     * @return $this
+     */
+    public function appendToMiddlewarePriority($middleware)
+    {
+        if (! in_array($middleware, $this->middlewarePriority)) {
+            $this->middlewarePriority[] = $middleware;
+        }
+
+        $this->syncMiddlewareToRouter();
+
+        return $this;
+    }
+
+    /**
+     * Sync the current state of the middleware to the router.
+     *
+     * @return void
+     */
+    protected function syncMiddlewareToRouter()
+    {
+        $this->router->middlewarePriority = $this->middlewarePriority;
+
+        foreach ($this->middlewareGroups as $key => $middleware) {
+            $this->router->middlewareGroup($key, $middleware);
+        }
+
+        foreach ($this->routeMiddleware as $key => $middleware) {
+            $this->router->aliasMiddleware($key, $middleware);
+        }
     }
 
     /**

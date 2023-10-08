@@ -212,7 +212,7 @@ public function instance($abstract, $instance)
 
 【图4.1】
 
-点开helpers.php文件中的第846行代码，追踪到下面这个方法：
+点开helpers.php文件中的第841行代码，追踪到下面这个方法：
 
 ````php
 /**
