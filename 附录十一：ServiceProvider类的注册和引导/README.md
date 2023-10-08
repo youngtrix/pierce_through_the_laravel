@@ -1,8 +1,5 @@
 ## 附录十一：ServiceProvider类的注册和引导
-# 服务提供器(ServiceProvider)
-
 服务提供器是所有 Laravel 应用程序引导中心。你的应用程序自定义的服务、第三方资源包提供的服务以及 Laravel 的所有核心服务都是通过服务提供器进行注册(register)和引导(boot)的。
-
 
 拿一个Laravel框架自带的服务提供器来举例子
 
