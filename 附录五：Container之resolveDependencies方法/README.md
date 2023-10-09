@@ -30,9 +30,15 @@ protected function resolveDependencies(array $dependencies)
         // If the class is null, it means the dependency is a string or some other
         // primitive type which we can not resolve since it is not a class and
         // we will just bomb out with an error since we have no-where to go.
-        $results[] = is_null($dependency->getClass())
+        $result[] = is_null($dependency->getClass())
             ? $this->resolvePrimitive($dependency)
             : $this->resolveClass($dependency);
+        
+        if ($dependency->isVariadic()) {
+            $results = array_merge($results, $result);
+        } else {
+            $results[] = $result;
+        }
     }
 
     return $results;

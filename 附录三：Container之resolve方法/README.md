@@ -18,10 +18,10 @@
 protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
+    
+    $concrete = $this->getContextualConcrete($abstract);
 
-    $needsContextualBuild = ! empty($parameters) || ! is_null(
-        $this->getContextualConcrete($abstract)
-    );
+    $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 
     // If an instance of the type is currently being managed as a singleton we'll
     // just return an existing instance instead of instantiating new instances
@@ -32,7 +32,9 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 
     $this->with[] = $parameters;
 
-    $concrete = $this->getConcrete($abstract);
+    if (is_null($concrete)) {
+        $concrete = $this->getConcrete($abstract);
+    }
 
     // We're ready to instantiate an instance of the concrete type registered for
     // the binding. This will instantiate the types, as well as resolve any of
@@ -315,9 +317,8 @@ public function getAlias($abstract)
 接着看下面的代码：
 
 ```php
-$needsContextualBuild = ! empty($parameters) || ! is_null(
-	$this->getContextualConcrete($abstract)
-);
+$concrete = $this->getContextualConcrete($abstract);
+$needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 ```
 
 接下来我们继续阅读这个方法后面的代码，可以得知，$needsContextualBuild是在判断根据当前的传参情况是否需要进行"上下文构建"。如何理解这个上下文构建呢？这就离不开Laravel的上下文绑定机制了。
@@ -538,7 +539,9 @@ if (isset($this->instances[$abstract]) && ! $needsContextualBuild) {
 
 $this->with[] = $parameters;
 
-$concrete = $this->getConcrete($abstract);
+if (is_null($concrete)) {
+    $concrete = $this->getConcrete($abstract);
+}
 
 // We're ready to instantiate an instance of the concrete type registered for
 // the binding. This will instantiate the types, as well as resolve any of

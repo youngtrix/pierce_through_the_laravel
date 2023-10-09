@@ -23,18 +23,14 @@ public function handle($request)
         $request->enableHttpMethodParameterOverride();
 
         $response = $this->sendRequestThroughRouter($request);
-    } catch (Exception $e) {
-        $this->reportException($e);
-
-        $response = $this->renderException($request, $e);
     } catch (Throwable $e) {
-        $this->reportException($e = new FatalThrowableError($e));
+        $this->reportException($e);
 
         $response = $this->renderException($request, $e);
     }
 
     $this->app['events']->dispatch(
-        new Events\RequestHandled($request, $response)
+        new RequestHandled($request, $response)
     );
 
     return $response;
@@ -50,12 +46,10 @@ try {
 
 } catch() {
 
-} catch () {
-
 }
 ````
 
-也就是try catch catch结构，和一般我们使用的try catch不同，这里连续使用了两个catch。并且第二个catch捕获的不是Exception，而是Throwable。这是因为Throwable包含了Exception和Error两种情况，当程序抛出的是Error时，是无法被Exception接住的，但是用Throwable肯定可以接住，Throwable是php7新增加的内容，读者可自行补充这部分知识，这里就不详细展开了。
+也就是try catch结构，和我们一般使用的catch(\Exception $e)不同，这里使用的时catch(Throwable $e)。这是因为Throwable包含了Exception和Error两种情况，Throwable是php7新增加的内容，读者可自行补充这部分知识，这里就不详细展开了。
 
 接下来，我们来看try中的主体语句：
 

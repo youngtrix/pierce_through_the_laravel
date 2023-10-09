@@ -29,12 +29,15 @@ protected function registerBaseBindings()
     static::setInstance($this);
 
     $this->instance('app', $this);
+    
     $this->instance(Container::class, $this);
     $this->singleton(Mix::class);
 
-    $this->instance(PackageManifest::class, new PackageManifest(
-        new Filesystem, $this->basePath(), $this->getCachedPackagesPath()
-    ));
+    $this->singleton(PackageManifest::class, function () {
+        return new PackageManifest(
+            new Filesystem, $this->basePath(), $this->getCachedPackagesPath()
+        );
+    });
 }
 ````
 
@@ -103,6 +106,10 @@ public function bind($abstract, $concrete = null, $shared = false)
     // bound into this container to the abstract type and we will just wrap it
     // up inside its own Closure to give us more convenience when extending.
     if (! $concrete instanceof Closure) {
+        if (! is_string($concrete)) {
+            throw new \TypeError(self::class.'::bind(): Argument #2 ($concrete) must be of type Closure|string|null');
+        }
+        
         $concrete = $this->getClosure($abstract, $concrete);
     }
 
@@ -133,6 +140,10 @@ $this->bindings[$abstract] = compact('concrete', 'shared');
 
 ````php
 if (! $concrete instanceof Closure) {
+    if (! is_string($concrete)) {
+        throw new \TypeError(self::class.'::bind(): Argument #2 ($concrete) must be of type Closure|string|null');
+    }
+    
     $concrete = $this->getClosure($abstract, $concrete);
 }
 ````
@@ -493,9 +504,9 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
 
-    $needsContextualBuild = ! empty($parameters) || ! is_null(
-        $this->getContextualConcrete($abstract)
-    );
+    $concrete = $this->getContextualConcrete($abstract);
+
+    $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 
     // If an instance of the type is currently being managed as a singleton we'll
     // just return an existing instance instead of instantiating new instances
@@ -506,7 +517,9 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 
     $this->with[] = $parameters;
 
-    $concrete = $this->getConcrete($abstract);
+    if (is_null($concrete)) {
+        $concrete = $this->getConcrete($abstract);
+    }
 
     // We're ready to instantiate an instance of the concrete type registered for
     // the binding. This will instantiate the types, as well as resolve any of

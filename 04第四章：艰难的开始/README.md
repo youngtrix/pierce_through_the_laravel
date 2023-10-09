@@ -352,9 +352,9 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
 
-    $needsContextualBuild = ! empty($parameters) || ! is_null(
-        $this->getContextualConcrete($abstract)
-    );
+    $concrete = $this->getContextualConcrete($abstract);
+
+    $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 
     // If an instance of the type is currently being managed as a singleton we'll
     // just return an existing instance instead of instantiating new instances
@@ -365,7 +365,9 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 
     $this->with[] = $parameters;
 
-    $concrete = $this->getConcrete($abstract);
+    if (is_null($concrete)) {
+        $concrete = $this->getConcrete($abstract);
+    }
 
     // We're ready to instantiate an instance of the concrete type registered for
     // the binding. This will instantiate the types, as well as resolve any of

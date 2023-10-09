@@ -7,7 +7,7 @@
 下面是本文安装的Laravel框架版本：
 ```
 F:\WWW\blog>php artisan
-Laravel Framework 6.20.44
+Laravel Framework 7.30.6
 
 Usage:
 command [options] [arguments]
@@ -16,10 +16,10 @@ command [options] [arguments]
 ```
 
 【图1.1】
-> 如果读者本地的Laravel版本不是6.20.44，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
+> 如果读者本地的Laravel版本不是7.30.6，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
 
 ### composer安装
-composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "6.*"`
+composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "7.*"`
 
 > 上述命令中的blog，实际上是我们安装完laravel框架后项目的文件夹名称
 
