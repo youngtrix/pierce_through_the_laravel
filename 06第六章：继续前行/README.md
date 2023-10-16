@@ -206,7 +206,89 @@ public function boot()
 ```
 > vendor/laravel/framework/src/Illuminate/Foundation/Application.php
 
-而且我们发现了一个比较奇怪的现象：这次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？
+结果如下：
+```
+object(Illuminate\Foundation\Application)#2 (32) {
+  ["basePath":protected]=>
+  string(24) "/home/vagrant/code/blog"
+  ["hasBeenBootstrapped":protected]=>
+  bool(true)
+  ["booted":protected]=>
+  bool(true)
+  ["bootingCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#160 (2) {
+      ["static"]=>
+      array(1) {
+        ["instance"]=>
+        object(Illuminate\Queue\QueueServiceProvider)#154 (1) {
+          ["app":protected]=>
+          *RECURSION*
+        }
+      }
+      ["this"]=>
+      *RECURSION*
+    }
+  }
+  ["bootedCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#193 (1) {
+      ["this"]=>
+      object(App\Providers\RouteServiceProvider)#133 (2) {
+        ["namespace":protected]=>
+        string(20) "App\Http\Controllers"
+        ["app":protected]=>
+        *RECURSION*
+      }
+    }
+  }
+  ["terminatingCallbacks":protected]=>
+  array(0) {
+  }
+  ["serviceProviders":protected]=>
+  array(23) {
+    [0]=>
+    object(Illuminate\Events\EventServiceProvider)#15 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [1]=>
+    object(Illuminate\Log\LogServiceProvider)#17 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [2]=>
+    object(Illuminate\Routing\RoutingServiceProvider)#19 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [3]=>
+    object(Illuminate\Auth\AuthServiceProvider)#51 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [4]=>
+    object(Illuminate\Cookie\CookieServiceProvider)#61 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [5]=>
+    object(Illuminate\Database\DatabaseServiceProvider)#63 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [6]=>
+    object(Illuminate\Encryption\EncryptionServiceProvider)#70 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+...
+... ...
+```
+
+我们发现了一个比较奇怪的现象：这次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？
 
 要了解事情的真相，还得从var_dump打印的内容开始入手，按照我们的猜想，应用启动后，输出一个provider对象信息后，程序马上就退出(exit)了，没有道理有这么明显的延时。
 
