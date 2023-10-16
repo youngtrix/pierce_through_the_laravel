@@ -386,7 +386,7 @@ protected function bootstrappers()
 
 > vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php
 
-我们最终能看到框架自定义的成员变量$bootstrppers值：
+我们最终能看到框架自定义的成员变量$bootstrappers值：
 
 ```php
 /**
@@ -510,6 +510,7 @@ protected $bootstrappers = [
 
 > vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php
 
+### LoadEnvironmentVariables
 第一个类LoadEnvironmentVariables：
 
 ```php
@@ -541,6 +542,7 @@ public function bootstrap(Application $app)
 
 这个地方的方法，涉及到Dotenv类的相关使用，在此我们不做过多赘述。大家可以简单理解为加载配置文件并解析为全局常量即可。
 
+### LoadConfiguration
 第二个类LoadConfiguration：
 
 ```php
@@ -673,6 +675,7 @@ return [
 
 因此两次对配置文件的处理，都是必要的，并不是多此一举。
 
+### HandleExceptions
 第三个类HandleExceptions：
 
 ```php
@@ -706,6 +709,7 @@ public function bootstrap(Application $app)
 
 这个方法中的代码浅显易懂，就是简单做一些错误及异常处理方面的工作。
 
+### RegisterFacades
 第四个类RegisterFacades：
 
 ```php
@@ -732,6 +736,7 @@ public function bootstrap(Application $app)
 
 这部分代码是处理Facade门面类和Alias别名类的，Laravel框架使用了门面模式和别名类来简化类的使用。
 
+### RegisterProviders
 第五个类RegisterProviders：
 
 ```php
@@ -753,6 +758,7 @@ public function bootstrap(Application $app)
 
 > RegisterFacades和RegisterProviders这两个类中的bootstrap方法，和Laravel中的"扩展自动注册"密切相关，这部分内容请参考【附录八】
 
+### BootProviders
 第六个类BootProviders：
 
 ```php
