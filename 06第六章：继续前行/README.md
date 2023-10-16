@@ -176,71 +176,124 @@ if ($this->isBooted()) {
 
 输出结果：
 
-![](../images/test_05.png)
+![](../images/test_11.png)
 
 【图6.2】
 
-由于输出的字符串太长，我们仅截取部分显示在这里。
+这里我们能看到，应用启动后，默认情况下并没有别的方法会继续触发register方法的运行。
+接下来我们尝试在应用启动后做一次var_dump中断测试：
+```php
+public function boot()
+{
+    if ($this->isBooted()) {
+        return;
+    }
 
-很明显，register方法至少被执行了两次：一次是应用启动时，一次是应用启动后。而且我们发现了一个比较奇怪的现象：第二次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？
+    // Once the application has booted we will also fire some "booted" callbacks
+    // for any listeners that need to do work after this initial booting gets
+    // finished. This is useful when ordering the boot-up processes we run.
+    $this->fireAppCallbacks($this->bootingCallbacks);
+
+    array_walk($this->serviceProviders, function ($p) {
+        $this->bootProvider($p);
+    });
+
+    $this->booted = true;
+    var_dump(self::getInstance());exit;
+
+    $this->fireAppCallbacks($this->bootedCallbacks);
+}
+```
+> vendor/laravel/framework/src/Illuminate/Foundation/Application.php
+
+而且我们发现了一个比较奇怪的现象：这次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？
 
 要了解事情的真相，还得从var_dump打印的内容开始入手，按照我们的猜想，应用启动后，输出一个provider对象信息后，程序马上就退出(exit)了，没有道理有这么明显的延时。
 
 现在我们来仔细查看var_dump语句输出的内容：
 
 ````php
-object(Illuminate\Hashing\HashServiceProvider)#288 (2) {
-  ["app":protected]=>
-  object(Illuminate\Foundation\Application)#2 (31) {
-    ["basePath":protected]=>
-    string(23) "/home/vagrant/code/blog"
-    ["hasBeenBootstrapped":protected]=>
-    bool(true)
-    ["booted":protected]=>
-    bool(true)
-    ["bootingCallbacks":protected]=>
-    array(0) {
-    }
-    ["bootedCallbacks":protected]=>
-    array(1) {
-      [0]=>
-      object(Closure)#178 (1) {
-        ["this"]=>
-        object(App\Providers\RouteServiceProvider)#130 (3) {
-          ["namespace":protected]=>
-          string(20) "App\Http\Controllers"
+object(Illuminate\Foundation\Application)#2 (32) {
+  ["basePath":protected]=>
+  string(24) "/home/vagrant/code/blog"
+  ["hasBeenBootstrapped":protected]=>
+  bool(true)
+  ["booted":protected]=>
+  bool(true)
+  ["bootingCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#160 (2) {
+      ["static"]=>
+      array(1) {
+        ["instance"]=>
+        object(Illuminate\Queue\QueueServiceProvider)#154 (1) {
           ["app":protected]=>
           *RECURSION*
-          ["defer":protected]=>
-          bool(false)
         }
       }
+      ["this"]=>
+      *RECURSION*
     }
-    ["terminatingCallbacks":protected]=>
-    array(0) {
-    }
-    ["serviceProviders":protected]=>
-    array(25) {
-      [0]=>
-      object(Illuminate\Events\EventServiceProvider)#8 (2) {
+  }
+  ["bootedCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#193 (1) {
+      ["this"]=>
+      object(App\Providers\RouteServiceProvider)#133 (2) {
+        ["namespace":protected]=>
+        string(20) "App\Http\Controllers"
         ["app":protected]=>
         *RECURSION*
-        ["defer":protected]=>
-        bool(false)
       }
-      [1]=>
-      object(Illuminate\Log\LogServiceProvider)#10 (2) {
-        ["app":protected]=>
-        *RECURSION*
-        ["defer":protected]=>
-        bool(false)
-      }
-      [2]=>
-      ...
-      ... ...
+    }
+  }
+  ["terminatingCallbacks":protected]=>
+  array(0) {
+  }
+  ["serviceProviders":protected]=>
+  array(23) {
+    [0]=>
+    object(Illuminate\Events\EventServiceProvider)#15 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [1]=>
+    object(Illuminate\Log\LogServiceProvider)#17 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [2]=>
+    object(Illuminate\Routing\RoutingServiceProvider)#19 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [3]=>
+    object(Illuminate\Auth\AuthServiceProvider)#51 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [4]=>
+    object(Illuminate\Cookie\CookieServiceProvider)#61 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [5]=>
+    object(Illuminate\Database\DatabaseServiceProvider)#63 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [6]=>
+    object(Illuminate\Encryption\EncryptionServiceProvider)#70 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+...
+... ...
 ````
 
-我们看到，HashServiceProvider对象里面包含app保护成员，这个保护成员正好就是全局唯一的容器对象，并且在很多其他地方我们都看到了：\*RECURSION\*。这是因为每一个ServiceProvider类型的对象都会将app这个容器放到自己的app保护成员变量上，这实际上造成了多次的递归引用。
+我们看到，Application对象里面包含serviceProviders保护成员，这个保护成员的每个数组子元素中又有成员变量app指向了application类自身，并且在很多其他地方我们都看到了：\*RECURSION\*。这是因为每一个ServiceProvider类型的对象都会将app这个容器放到自己的app保护成员变量上，这实际上造成了多次的递归引用。
 
 >这里的"ServiceProvider类型"的对象，是指所有服务提供者类的实例，这些服务提供者类有一个共同的特征，就是都继承了`\Illuminate\Support\ServiceProvider`类。
 

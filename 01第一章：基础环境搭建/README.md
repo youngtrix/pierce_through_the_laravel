@@ -4,7 +4,8 @@
 
 对于框架版本不一致的情况，强烈建议您在本地安装一个和作者分析的版本一致的Laravel应用。作者相信通读这个系列的文章后，对于新版本框架的代码，您可以依葫芦画瓢，依靠自己的力量去理解新旧框架之间的不同部分。
 
-下面是本文安装的Laravel框架版本：
+下面是本文安装的Laravel框架版本及php版本：
+### Laravel
 ```
 F:\WWW\blog>php artisan
 Laravel Framework 6.20.44
@@ -14,9 +15,17 @@ command [options] [arguments]
 ...
 ... ...
 ```
-
-【图1.1】
 > 如果读者本地的Laravel版本不是6.20.44，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
+
+### PHP
+```php
+vagrant@homestead:~$ php7.3 --version
+PHP 7.3.31-1+ubuntu20.04.1+deb.sury.org+1 (cli) (built: Sep 23 2021 21:36:16) ( NTS )
+Copyright (c) 1997-2018 The PHP Group
+Zend Engine v3.3.31, Copyright (c) 1998-2018 Zend Technologies
+    with Zend OPcache v7.3.31-1+ubuntu20.04.1+deb.sury.org+1, Copyright (c) 1999-2018, by Zend Technologies
+```
+> 笔者本机上采用的运行环境为Homestead, Homestead依赖Virtualbox虚拟机需要前置安装Vagrant、Virtualbox等软件。
 
 ### composer安装
 composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "6.*"`
