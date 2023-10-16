@@ -392,7 +392,7 @@ protected function bootstrappers()
 
 > vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php
 
-我们最终能看到框架自定义的成员变量$bootstrppers值：
+我们最终能看到框架自定义的成员变量$bootstrappers值：
 
 ```php
 /**
