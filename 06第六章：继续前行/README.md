@@ -176,73 +176,174 @@ if ($this->isBooted()) {
 
 输出结果：
 
-![](../images/test_05.png)
+![](../images/test_11.png)
 
 【图6.2】
 
-由于输出的字符串太长，我们仅截取部分显示在这里。
+这里我们能看到，应用启动后，默认情况下并没有别的方法会继续触发register方法的运行。 接下来我们尝试在应用启动后做一次var_dump中断测试：
+```php
+public function boot()
+{
+    if ($this->isBooted()) {
+        return;
+    }
 
-很明显，register方法至少被执行了两次：一次是应用启动时，一次是应用启动后。而且我们发现了一个比较奇怪的现象：第二次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？
+    // Once the application has booted we will also fire some "booted" callbacks
+    // for any listeners that need to do work after this initial booting gets
+    // finished. This is useful when ordering the boot-up processes we run.
+    $this->fireAppCallbacks($this->bootingCallbacks);
 
-要了解事情的真相，还得从var_dump打印的内容开始入手，按照我们的猜想，应用启动后，输出一个provider对象信息后，程序马上就退出(exit)了，没有道理有这么明显的延时。
+    array_walk($this->serviceProviders, function ($p) {
+        $this->bootProvider($p);
+    });
+
+    $this->booted = true;
+    var_dump(self::getInstance());exit;
+
+    $this->fireAppCallbacks($this->bootedCallbacks);
+}
+```
+> vendor/laravel/framework/src/Illuminate/Foundation/Application.php
+
+结果如下：
+```
+object(Illuminate\Foundation\Application)#2 (33) {
+  ["basePath":protected]=>
+  string(24) "/home/vagrant/code/blog7"
+  ["hasBeenBootstrapped":protected]=>
+  bool(true)
+  ["booted":protected]=>
+  bool(true)
+  ["bootingCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#166 (2) {
+      ["static"]=>
+      array(1) {
+        ["instance"]=>
+        object(Illuminate\Queue\QueueServiceProvider)#160 (1) {
+          ["app":protected]=>
+          *RECURSION*
+        }
+      }
+      ["this"]=>
+      *RECURSION*
+    }
+  }
+  ["bootedCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#204 (1) {
+      ["this"]=>
+      object(App\Providers\RouteServiceProvider)#138 (2) {
+        ["namespace":protected]=>
+        string(20) "App\Http\Controllers"
+        ["app":protected]=>
+        *RECURSION*
+      }
+    }
+  }
+  ["terminatingCallbacks":protected]=>
+  array(0) {
+  }
+  ["serviceProviders":protected]=>
+  array(24) {
+    [0]=>
+    object(Illuminate\Events\EventServiceProvider)#7 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [1]=>
+    object(Illuminate\Log\LogServiceProvider)#9 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [2]=>
+    object(Illuminate\Routing\RoutingServiceProvider)#11 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [3]=>
+    object(Illuminate\Auth\AuthServiceProvider)#39 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    ...
+    ... ...
+```
+
+我们发现了一个比较奇怪的现象：这次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？ 要了解事情的真相，还得从var_dump打印的内容开始入手，按照我们的猜想，应用启动后，输出一个provider对象信息后，程序马上就退出(exit)了，没有道理有这么明显的延时。
 
 现在我们来仔细查看var_dump语句输出的内容：
 
 ````php
-object(Illuminate\Hashing\HashServiceProvider)#288 (2) {
-  ["app":protected]=>
-  object(Illuminate\Foundation\Application)#2 (31) {
-    ["basePath":protected]=>
-    string(23) "/home/vagrant/code/blog"
-    ["hasBeenBootstrapped":protected]=>
-    bool(true)
-    ["booted":protected]=>
-    bool(true)
-    ["bootingCallbacks":protected]=>
-    array(0) {
-    }
-    ["bootedCallbacks":protected]=>
-    array(1) {
-      [0]=>
-      object(Closure)#178 (1) {
-        ["this"]=>
-        object(App\Providers\RouteServiceProvider)#130 (3) {
-          ["namespace":protected]=>
-          string(20) "App\Http\Controllers"
+object(Illuminate\Foundation\Application)#2 (33) {
+  ["basePath":protected]=>
+  string(24) "/home/vagrant/code/blog7"
+  ["hasBeenBootstrapped":protected]=>
+  bool(true)
+  ["booted":protected]=>
+  bool(true)
+  ["bootingCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#166 (2) {
+      ["static"]=>
+      array(1) {
+        ["instance"]=>
+        object(Illuminate\Queue\QueueServiceProvider)#160 (1) {
           ["app":protected]=>
           *RECURSION*
-          ["defer":protected]=>
-          bool(false)
         }
       }
+      ["this"]=>
+      *RECURSION*
     }
-    ["terminatingCallbacks":protected]=>
-    array(0) {
-    }
-    ["serviceProviders":protected]=>
-    array(25) {
-      [0]=>
-      object(Illuminate\Events\EventServiceProvider)#8 (2) {
+  }
+  ["bootedCallbacks":protected]=>
+  array(1) {
+    [0]=>
+    object(Closure)#204 (1) {
+      ["this"]=>
+      object(App\Providers\RouteServiceProvider)#138 (2) {
+        ["namespace":protected]=>
+        string(20) "App\Http\Controllers"
         ["app":protected]=>
         *RECURSION*
-        ["defer":protected]=>
-        bool(false)
       }
-      [1]=>
-      object(Illuminate\Log\LogServiceProvider)#10 (2) {
-        ["app":protected]=>
-        *RECURSION*
-        ["defer":protected]=>
-        bool(false)
-      }
-      [2]=>
-      ...
-      ... ...
+    }
+  }
+  ["terminatingCallbacks":protected]=>
+  array(0) {
+  }
+  ["serviceProviders":protected]=>
+  array(24) {
+    [0]=>
+    object(Illuminate\Events\EventServiceProvider)#7 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [1]=>
+    object(Illuminate\Log\LogServiceProvider)#9 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [2]=>
+    object(Illuminate\Routing\RoutingServiceProvider)#11 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }
+    [3]=>
+    object(Illuminate\Auth\AuthServiceProvider)#39 (1) {
+      ["app":protected]=>
+      *RECURSION*
+    }     
+    ...
+    ... ...
 ````
 
-我们看到，HashServiceProvider对象里面包含app保护成员，这个保护成员正好就是全局唯一的容器对象，并且在很多其他地方我们都看到了：\*RECURSION\*。这是因为每一个ServiceProvider类型的对象都会将app这个容器放到自己的app保护成员变量上，这实际上造成了多次的递归引用。
-
->这里的"ServiceProvider类型"的对象，是指所有服务提供者类的实例，这些服务提供者类有一个共同的特征，就是都继承了`\Illuminate\Support\ServiceProvider`类。
+我们看到，Application对象里面包含serviceProviders保护成员，这个保护成员数组中包含的子元素中正好有一个保护成员app就是全局唯一的容器对象，并且在很多其他地方我们都看到了：*RECURSION*。这是因为每一个ServiceProvider类型的对象都会将app这个容器放到自己的app保护成员变量上，这实际上造成了多次的递归引用。
+> 这里的"ServiceProvider类型"的对象，是指所有服务提供者类的实例，这些服务提供者类有一个共同的特征，就是都继承了`\Illuminate\Support\ServiceProvider`类。
 
 从app容器这个对象的内容来看，我们发现在应用启动后，app包含了很多provider类型的对象。通过查看isBooted方法的源码，我们能梳理出app的保护成员变量booted是什么时候从false变成true的。在phpstorm IDE中全局搜索"->booted"，我们能看到，正是在boot方法之后，booted值被赋值为了true：
 
@@ -356,47 +457,48 @@ $this->registerCoreContainerAliases();
 public function registerCoreContainerAliases()
 {
     foreach ([
-		'app'                  => [self::class, \Illuminate\Contracts\Container\Container::class, \Illuminate\Contracts\Foundation\Application::class, \Psr\Container\ContainerInterface::class],
-		'auth'                 => [\Illuminate\Auth\AuthManager::class, \Illuminate\Contracts\Auth\Factory::class],
-		'auth.driver'          => [\Illuminate\Contracts\Auth\Guard::class],
-		'blade.compiler'       => [\Illuminate\View\Compilers\BladeCompiler::class],
-		'cache'                => [\Illuminate\Cache\CacheManager::class, \Illuminate\Contracts\Cache\Factory::class],
-		'cache.store'          => [\Illuminate\Cache\Repository::class, \Illuminate\Contracts\Cache\Repository::class, \Psr\SimpleCache\CacheInterface::class],
-		'cache.psr6'           => [\Symfony\Component\Cache\Adapter\Psr16Adapter::class, \Symfony\Component\Cache\Adapter\AdapterInterface::class, \Psr\Cache\CacheItemPoolInterface::class],
-		'config'               => [\Illuminate\Config\Repository::class, \Illuminate\Contracts\Config\Repository::class],
-		'cookie'               => [\Illuminate\Cookie\CookieJar::class, \Illuminate\Contracts\Cookie\Factory::class, \Illuminate\Contracts\Cookie\QueueingFactory::class],
-		'encrypter'            => [\Illuminate\Encryption\Encrypter::class, \Illuminate\Contracts\Encryption\Encrypter::class],
-		'db'                   => [\Illuminate\Database\DatabaseManager::class, \Illuminate\Database\ConnectionResolverInterface::class],
-		'db.connection'        => [\Illuminate\Database\Connection::class, \Illuminate\Database\ConnectionInterface::class],
-		'events'               => [\Illuminate\Events\Dispatcher::class, \Illuminate\Contracts\Events\Dispatcher::class],
-		'files'                => [\Illuminate\Filesystem\Filesystem::class],
-		'filesystem'           => [\Illuminate\Filesystem\FilesystemManager::class, \Illuminate\Contracts\Filesystem\Factory::class],
-		'filesystem.disk'      => [\Illuminate\Contracts\Filesystem\Filesystem::class],
-		'filesystem.cloud'     => [\Illuminate\Contracts\Filesystem\Cloud::class],
-		'hash'                 => [\Illuminate\Hashing\HashManager::class],
-		'hash.driver'          => [\Illuminate\Contracts\Hashing\Hasher::class],
-		'translator'           => [\Illuminate\Translation\Translator::class, \Illuminate\Contracts\Translation\Translator::class],
-		'log'                  => [\Illuminate\Log\LogManager::class, \Psr\Log\LoggerInterface::class],
-		'mailer'               => [\Illuminate\Mail\Mailer::class, \Illuminate\Contracts\Mail\Mailer::class, \Illuminate\Contracts\Mail\MailQueue::class],
-		'auth.password'        => [\Illuminate\Auth\Passwords\PasswordBrokerManager::class, \Illuminate\Contracts\Auth\PasswordBrokerFactory::class],
-		'auth.password.broker' => [\Illuminate\Auth\Passwords\PasswordBroker::class, \Illuminate\Contracts\Auth\PasswordBroker::class],
-		'queue'                => [\Illuminate\Queue\QueueManager::class, \Illuminate\Contracts\Queue\Factory::class, \Illuminate\Contracts\Queue\Monitor::class],
-		'queue.connection'     => [\Illuminate\Contracts\Queue\Queue::class],
-		'queue.failer'         => [\Illuminate\Queue\Failed\FailedJobProviderInterface::class],
-		'redirect'             => [\Illuminate\Routing\Redirector::class],
-		'redis'                => [\Illuminate\Redis\RedisManager::class, \Illuminate\Contracts\Redis\Factory::class],
-		'redis.connection'     => [\Illuminate\Redis\Connections\Connection::class, \Illuminate\Contracts\Redis\Connection::class],
-		'request'              => [\Illuminate\Http\Request::class, \Symfony\Component\HttpFoundation\Request::class],
-		'router'               => [\Illuminate\Routing\Router::class, \Illuminate\Contracts\Routing\Registrar::class, \Illuminate\Contracts\Routing\BindingRegistrar::class],
-		'session'              => [\Illuminate\Session\SessionManager::class],
-		'session.store'        => [\Illuminate\Session\Store::class, \Illuminate\Contracts\Session\Session::class],
-		'url'                  => [\Illuminate\Routing\UrlGenerator::class, \Illuminate\Contracts\Routing\UrlGenerator::class],
-		'validator'            => [\Illuminate\Validation\Factory::class, \Illuminate\Contracts\Validation\Factory::class],
-		'view'                 => [\Illuminate\View\Factory::class, \Illuminate\Contracts\View\Factory::class],
-	] as $key => $aliases) {
-		foreach ($aliases as $alias) {
-			$this->alias($key, $alias);
-		}
+        'app' => [self::class, \Illuminate\Contracts\Container\Container::class, \Illuminate\Contracts\Foundation\Application::class, \Psr\Container\ContainerInterface::class],
+        'auth' => [\Illuminate\Auth\AuthManager::class, \Illuminate\Contracts\Auth\Factory::class],
+        'auth.driver' => [\Illuminate\Contracts\Auth\Guard::class],
+        'blade.compiler' => [\Illuminate\View\Compilers\BladeCompiler::class],
+        'cache' => [\Illuminate\Cache\CacheManager::class, \Illuminate\Contracts\Cache\Factory::class],
+        'cache.store' => [\Illuminate\Cache\Repository::class, \Illuminate\Contracts\Cache\Repository::class, \Psr\SimpleCache\CacheInterface::class],
+        'cache.psr6' => [\Symfony\Component\Cache\Adapter\Psr16Adapter::class, \Symfony\Component\Cache\Adapter\AdapterInterface::class, \Psr\Cache\CacheItemPoolInterface::class],
+        'config' => [\Illuminate\Config\Repository::class, \Illuminate\Contracts\Config\Repository::class],
+        'cookie' => [\Illuminate\Cookie\CookieJar::class, \Illuminate\Contracts\Cookie\Factory::class, \Illuminate\Contracts\Cookie\QueueingFactory::class],
+        'db' => [\Illuminate\Database\DatabaseManager::class, \Illuminate\Database\ConnectionResolverInterface::class],
+        'db.connection' => [\Illuminate\Database\Connection::class, \Illuminate\Database\ConnectionInterface::class],
+        'encrypter' => [\Illuminate\Encryption\Encrypter::class, \Illuminate\Contracts\Encryption\Encrypter::class, \Illuminate\Contracts\Encryption\StringEncrypter::class],
+        'events' => [\Illuminate\Events\Dispatcher::class, \Illuminate\Contracts\Events\Dispatcher::class],
+        'files' => [\Illuminate\Filesystem\Filesystem::class],
+        'filesystem' => [\Illuminate\Filesystem\FilesystemManager::class, \Illuminate\Contracts\Filesystem\Factory::class],
+        'filesystem.disk' => [\Illuminate\Contracts\Filesystem\Filesystem::class],
+        'filesystem.cloud' => [\Illuminate\Contracts\Filesystem\Cloud::class],
+        'hash' => [\Illuminate\Hashing\HashManager::class],
+        'hash.driver' => [\Illuminate\Contracts\Hashing\Hasher::class],
+        'translator' => [\Illuminate\Translation\Translator::class, \Illuminate\Contracts\Translation\Translator::class],
+        'log' => [\Illuminate\Log\LogManager::class, \Psr\Log\LoggerInterface::class],
+        'mail.manager' => [\Illuminate\Mail\MailManager::class, \Illuminate\Contracts\Mail\Factory::class],
+        'mailer' => [\Illuminate\Mail\Mailer::class, \Illuminate\Contracts\Mail\Mailer::class, \Illuminate\Contracts\Mail\MailQueue::class],
+        'auth.password' => [\Illuminate\Auth\Passwords\PasswordBrokerManager::class, \Illuminate\Contracts\Auth\PasswordBrokerFactory::class],
+        'auth.password.broker' => [\Illuminate\Auth\Passwords\PasswordBroker::class, \Illuminate\Contracts\Auth\PasswordBroker::class],
+        'queue' => [\Illuminate\Queue\QueueManager::class, \Illuminate\Contracts\Queue\Factory::class, \Illuminate\Contracts\Queue\Monitor::class],
+        'queue.connection' => [\Illuminate\Contracts\Queue\Queue::class],
+        'queue.failer' => [\Illuminate\Queue\Failed\FailedJobProviderInterface::class],
+        'redirect' => [\Illuminate\Routing\Redirector::class],
+        'redis' => [\Illuminate\Redis\RedisManager::class, \Illuminate\Contracts\Redis\Factory::class],
+        'redis.connection' => [\Illuminate\Redis\Connections\Connection::class, \Illuminate\Contracts\Redis\Connection::class],
+        'request' => [\Illuminate\Http\Request::class, \Symfony\Component\HttpFoundation\Request::class],
+        'router' => [\Illuminate\Routing\Router::class, \Illuminate\Contracts\Routing\Registrar::class, \Illuminate\Contracts\Routing\BindingRegistrar::class],
+        'session' => [\Illuminate\Session\SessionManager::class],
+        'session.store' => [\Illuminate\Session\Store::class, \Illuminate\Contracts\Session\Session::class],
+        'url' => [\Illuminate\Routing\UrlGenerator::class, \Illuminate\Contracts\Routing\UrlGenerator::class],
+        'validator' => [\Illuminate\Validation\Factory::class, \Illuminate\Contracts\Validation\Factory::class],
+        'view' => [\Illuminate\View\Factory::class, \Illuminate\Contracts\View\Factory::class],
+        ] as $key => $aliases) {
+        foreach ($aliases as $alias) {
+            $this->alias($key, $alias);
+        }
 	}
 }
 ````

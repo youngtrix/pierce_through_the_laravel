@@ -18,59 +18,66 @@
 protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
-    
-    $concrete = $this->getContextualConcrete($abstract);
 
-    $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
+     // First we'll fire any event handlers which handle the "before" resolving of
+     // specific types. This gives some hooks the chance to add various extends
+     // calls to change the resolution of objects that they're interested in.
+     if ($raiseEvents) {
+         $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+     }
 
-    // If an instance of the type is currently being managed as a singleton we'll
-    // just return an existing instance instead of instantiating new instances
-    // so the developer can keep using the same objects instance every time.
-    if (isset($this->instances[$abstract]) && ! $needsContextualBuild) {
-        return $this->instances[$abstract];
-    }
+     $concrete = $this->getContextualConcrete($abstract);
 
-    $this->with[] = $parameters;
+     $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 
-    if (is_null($concrete)) {
-        $concrete = $this->getConcrete($abstract);
-    }
+     // If an instance of the type is currently being managed as a singleton we'll
+     // just return an existing instance instead of instantiating new instances
+     // so the developer can keep using the same objects instance every time.
+     if (isset($this->instances[$abstract]) && ! $needsContextualBuild) {
+         return $this->instances[$abstract];
+     }
 
-    // We're ready to instantiate an instance of the concrete type registered for
-    // the binding. This will instantiate the types, as well as resolve any of
-    // its "nested" dependencies recursively until all have gotten resolved.
-    if ($this->isBuildable($concrete, $abstract)) {
-        $object = $this->build($concrete);
-    } else {
-        $object = $this->make($concrete);
-    }
+     $this->with[] = $parameters;
 
-    // If we defined any extenders for this type, we'll need to spin through them
-    // and apply them to the object being built. This allows for the extension
-    // of services, such as changing configuration or decorating the object.
-    foreach ($this->getExtenders($abstract) as $extender) {
-        $object = $extender($object, $this);
-    }
+     if (is_null($concrete)) {
+         $concrete = $this->getConcrete($abstract);
+     }
 
-    // If the requested type is registered as a singleton we'll want to cache off
-    // the instances in "memory" so we can return it later without creating an
-    // entirely new instance of an object on each subsequent request for it.
-    if ($this->isShared($abstract) && ! $needsContextualBuild) {
-        $this->instances[$abstract] = $object;
-    }
+     // We're ready to instantiate an instance of the concrete type registered for
+     // the binding. This will instantiate the types, as well as resolve any of
+     // its "nested" dependencies recursively until all have gotten resolved.
+     if ($this->isBuildable($concrete, $abstract)) {
+         $object = $this->build($concrete);
+     } else {
+         $object = $this->make($concrete);
+     }
 
-    if ($raiseEvents) {
-        $this->fireResolvingCallbacks($abstract, $object);
-    }
+     // If we defined any extenders for this type, we'll need to spin through them
+     // and apply them to the object being built. This allows for the extension
+     // of services, such as changing configuration or decorating the object.
+     foreach ($this->getExtenders($abstract) as $extender) {
+         $object = $extender($object, $this);
+     }
 
-    // Before returning, we will also set the resolved flag to "true" and pop off
-    // the parameter overrides for this build. After those two things are done
-    // we will be ready to return back the fully constructed class instance.
-    $this->resolved[$abstract] = true;
+     // If the requested type is registered as a singleton we'll want to cache off
+     // the instances in "memory" so we can return it later without creating an
+     // entirely new instance of an object on each subsequent request for it.
+     if ($this->isShared($abstract) && ! $needsContextualBuild) {
+         $this->instances[$abstract] = $object;
+     }
 
-    array_pop($this->with);
+     if ($raiseEvents) {
+         $this->fireResolvingCallbacks($abstract, $object);
+     }
 
-    return $object;
+     // Before returning, we will also set the resolved flag to "true" and pop off
+     // the parameter overrides for this build. After those two things are done
+     // we will be ready to return back the fully constructed class instance.
+     $this->resolved[$abstract] = true;
+
+     array_pop($this->with);
+
+     return $object;
 }  
 ````
 
@@ -246,7 +253,7 @@ protected function registerBaseServiceProviders()
 
 ![](../images/test_16.png)
 
-
+> 要正确完成CuponServiceProvider类的引入，还需在文件按头部添加命名空间
 我们看到页面输出了很多个"OK,"，这是因为在程序完成执行完`registerBaseServiceProvider`方法中的`$this->register(new CuponServiceProvider($this));`代码后，CuponServiceProvider类中的`boot`方法被调用，而这个方法正是完成了一次对全局回调事件($globalResolvingCallbacks)的操作，我们继续阅读容器类中的resolving方法源码：
 
 ```php

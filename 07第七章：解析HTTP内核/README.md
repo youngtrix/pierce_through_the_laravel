@@ -113,7 +113,6 @@ class Kernel extends HttpKernel
 
 namespace Illuminate\Foundation\Http;
 
-use Exception;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Http\Kernel as KernelContract;
@@ -122,7 +121,6 @@ use Illuminate\Routing\Pipeline;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
 use InvalidArgumentException;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Throwable;
 
 class Kernel implements KernelContract
@@ -144,7 +142,7 @@ class Kernel implements KernelContract
     /**
      * The bootstrap classes for the application.
      *
-     * @var array
+     * @var string[]
      */
     protected $bootstrappers = [
         \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
@@ -181,13 +179,15 @@ class Kernel implements KernelContract
      *
      * Forces non-global middleware to always be in the given order.
      *
-     * @var array
+     * @var string[]
      */
     protected $middlewarePriority = [
+        \Illuminate\Cookie\Middleware\EncryptCookies::class,
         \Illuminate\Session\Middleware\StartSession::class,
         \Illuminate\View\Middleware\ShareErrorsFromSession::class,
         \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
         \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        \Illuminate\Routing\Middleware\ThrottleRequestsWithRedis::class,
         \Illuminate\Session\Middleware\AuthenticateSession::class,
         \Illuminate\Routing\Middleware\SubstituteBindings::class,
         \Illuminate\Auth\Middleware\Authorize::class,
@@ -220,10 +220,6 @@ class Kernel implements KernelContract
             $request->enableHttpMethodParameterOverride();
 
             $response = $this->sendRequestThroughRouter($request);
-        } catch (Exception $e) {
-            $this->reportException($e);
-
-            $response = $this->renderException($request, $e);
         } catch (Throwable $e) {
             $this->reportException($e);
 
@@ -370,7 +366,7 @@ class Kernel implements KernelContract
     }
 
     /**
-     * Add a new middleware to beginning of the stack if it does not already exist.
+     * Add a new middleware to the beginning of the stack if it does not already exist.
      *
      * @param  string  $middleware
      * @return $this
@@ -500,6 +496,16 @@ class Kernel implements KernelContract
     }
 
     /**
+     * Get the priority-sorted list of middleware.
+     *
+     * @return array
+     */
+    public function getMiddlewarePriority()
+    {
+        return $this->middlewarePriority;
+    }
+
+    /**
      * Get the bootstrap classes for the application.
      *
      * @return array
@@ -524,7 +530,7 @@ class Kernel implements KernelContract
      * Render the exception to a response.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $e
+     * @param  \Throwable  $e
      * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function renderException($request, Throwable $e)
@@ -560,6 +566,19 @@ class Kernel implements KernelContract
     public function getApplication()
     {
         return $this->app;
+    }
+
+    /**
+     * Set the Laravel application instance.
+     *
+     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @return $this
+     */
+    public function setApplication(Application $app)
+    {
+        $this->app = $app;
+
+        return $this;
     }
 }
 ````

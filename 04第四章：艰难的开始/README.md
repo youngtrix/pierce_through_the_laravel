@@ -212,7 +212,7 @@ public function instance($abstract, $instance)
 
 【图4.1】
 
-点开helpers.php文件中的第841行代码，追踪到下面这个方法：
+点开helpers.php文件中的第803行代码，追踪到下面这个方法：
 
 ````php
 /**
@@ -351,6 +351,13 @@ public function make($abstract, array $parameters = [])
 protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
+
+    // First we'll fire any event handlers which handle the "before" resolving of
+    // specific types. This gives some hooks the chance to add various extends
+    // calls to change the resolution of objects that they're interested in.
+    if ($raiseEvents) {
+        $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+    }
 
     $concrete = $this->getContextualConcrete($abstract);
 

@@ -504,6 +504,13 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
 
+    // First we'll fire any event handlers which handle the "before" resolving of
+    // specific types. This gives some hooks the chance to add various extends
+    // calls to change the resolution of objects that they're interested in.
+    if ($raiseEvents) {
+        $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+    }
+
     $concrete = $this->getContextualConcrete($abstract);
 
     $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
