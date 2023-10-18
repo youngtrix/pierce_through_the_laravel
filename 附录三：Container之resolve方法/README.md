@@ -246,6 +246,7 @@ protected function registerBaseServiceProviders()
 
 ![](../images/test_16.png)
 
+> 要正确完成CuponServiceProvider类的引入，还需在文件按头部添加命名空间
 
 我们看到页面输出了很多个"OK,"，这是因为在程序完成执行完`registerBaseServiceProvider`方法中的`$this->register(new CuponServiceProvider($this));`代码后，CuponServiceProvider类中的`boot`方法被调用，而这个方法正是完成了一次对全局回调事件($globalResolvingCallbacks)的操作，我们继续阅读容器类中的resolving方法源码：
 
