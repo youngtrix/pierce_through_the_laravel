@@ -5,8 +5,9 @@
 ````php
 $response = $kernel->handle(
     $request = Illuminate\Http\Request::capture()
-);
+)->send();
 ````
+> 注意我们这说的第四阶段，实际并不包含send方法的调用，而是专指send方法调用前面的部分。
 
 我们先来看kernel这个对象的handle方法：
 
@@ -19,6 +20,8 @@ $response = $kernel->handle(
  */
 public function handle($request)
 {
+    $this->requestStartedAt = Carbon::now();
+    
     try {
         $request->enableHttpMethodParameterOverride();
 
@@ -240,14 +243,13 @@ protected function registerBaseServiceProviders()
 为了弄清楚事情的真相，我们还是得借助var_dump中断测试这个万能的方法。
 
 首先，我们要确定events键值对是不是真的在`$this->register(new EventServiceProvider($this));`语句执行后才存在于app容器身上。怎么测试呢？很简单，在registerBaseServiceProviders方法中，注释`$this->register(new EventServiceProvider($this));`这一行。同时，在bootstrapWith方法中仍然打印$this['events']，并exit：
-
-![](../images/test_07.png)
-
-【图8.2】
+```
+( ! ) Fatal error: Uncaught ReflectionException: Class "events" does not exist in /home/vagrant/code/blog/vendor/laravel/framework/src/Illuminate/Container/Container.php:889 Stack trace:
+```
 
 运行结果说明，events键值对，确实是在执行完`$this->register(new EventServiceProvider($this));`语句后才存在于app容器身上。
 
-我们定位到Container类的第788行，发现这里是Container类的build方法：
+我们定位到Container类的第889行，发现这里是Container类的build方法：
 
 ![](../images/test_08.png)
 
@@ -687,17 +689,17 @@ return [
  */
 public function bootstrap(Application $app)
 {
-    self::$reservedMemory = str_repeat('x', 10240);
+    self::$reservedMemory = str_repeat('x', 32768);
 
-    $this->app = $app;
+    static::$app = $app;
 
     error_reporting(-1);
 
-    set_error_handler([$this, 'handleError']);
+    set_error_handler($this->forwardsTo('handleError'));
 
-    set_exception_handler([$this, 'handleException']);
+    set_exception_handler($this->forwardsTo('handleException'));
 
-    register_shutdown_function([$this, 'handleShutdown']);
+    register_shutdown_function($this->forwardsTo('handleShutdown'));
 
     if (! $app->environment('testing')) {
         ini_set('display_errors', 'Off');
@@ -1063,9 +1065,13 @@ findRoute:
  */
 protected function findRoute($request)
 {
-	$this->current = $route = $this->routes->match($request);
+	$this->events->dispatch(new Routing($request));
 
-	$this->container->instance(Route::class, $route);
+    $this->current = $route = $this->routes->match($request);
+
+    $route->setContainer($this->container);
+
+    $this->container->instance(Route::class, $route);
 
 	return $route;
 }
@@ -1083,13 +1089,11 @@ runRoute：
  *
  * @param  \Illuminate\Http\Request  $request
  * @param  \Illuminate\Routing\Route  $route
- * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+ * @return \Symfony\Component\HttpFoundation\Response
  */
 protected function runRoute(Request $request, Route $route)
 {
-    $request->setRouteResolver(function () use ($route) {
-        return $route;
-    });
+    $request->setRouteResolver(fn () => $route);
 
     $this->events->dispatch(new Events\RouteMatched($route, $request));
 
@@ -1152,9 +1156,11 @@ if ($event == \Illuminate\Routing\Events\RouteMatched::class) {
 ```
 
 结果：
-
-```php
-array(0) { } bool(false)
+```
+/home/vagrant/code/blog9/vendor/laravel/framework/src/Illuminate/Events/Dispatcher.php:250:
+array (size=0)
+  empty
+/home/vagrant/code/blog9/vendor/laravel/framework/src/Illuminate/Events/Dispatcher.php:251:boolean false
 ```
 
 通过这个var_dump中断测试的结果，结合dispatch方法中的实际代码，就能清楚：在我们没有对当前应用做任何改动的情况下，访问主页的这个URL时，runRoute方法中的dispatch确实"什么都没做"。

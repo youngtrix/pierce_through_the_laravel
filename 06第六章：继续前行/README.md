@@ -273,6 +273,8 @@ object(Illuminate\Foundation\Application)#2 (33) {
 ```
 
 我们发现了一个比较奇怪的现象：这次var_dump中断测试时页面要加载较长时间才能运行完成(对比第一次有明显的延时)。这是什么原因造成的呢？
+> 当升级php版本到8.0或以上时, "延时"情况并没有表现得很明显, 说明高版本的php底层已经做了优化。
+ 
 要了解事情的真相，还得从var_dump打印的内容开始入手，按照我们的猜想，应用启动后，输出一个provider对象信息后，程序马上就退出(exit)了，没有道理有这么明显的延时。
 
 现在我们来仔细查看var_dump语句输出的内容：
@@ -469,6 +471,8 @@ public function registerCoreContainerAliases()
 		'encrypter'            => [\Illuminate\Encryption\Encrypter::class, \Illuminate\Contracts\Encryption\Encrypter::class],
 		'db'                   => [\Illuminate\Database\DatabaseManager::class, \Illuminate\Database\ConnectionResolverInterface::class],
 		'db.connection'        => [\Illuminate\Database\Connection::class, \Illuminate\Database\ConnectionInterface::class],
+		'db.schema'            => [\Illuminate\Database\Schema\Builder::class],
+		'encrypter'            => [\Illuminate\Encryption\Encrypter::class, \Illuminate\Contracts\Encryption\Encrypter::class, \Illuminate\Contracts\Encryption\StringEncrypter::class],
 		'events'               => [\Illuminate\Events\Dispatcher::class, \Illuminate\Contracts\Events\Dispatcher::class],
 		'files'                => [\Illuminate\Filesystem\Filesystem::class],
 		'filesystem'           => [\Illuminate\Filesystem\FilesystemManager::class, \Illuminate\Contracts\Filesystem\Factory::class],
@@ -478,6 +482,7 @@ public function registerCoreContainerAliases()
 		'hash.driver'          => [\Illuminate\Contracts\Hashing\Hasher::class],
 		'translator'           => [\Illuminate\Translation\Translator::class, \Illuminate\Contracts\Translation\Translator::class],
 		'log'                  => [\Illuminate\Log\LogManager::class, \Psr\Log\LoggerInterface::class],
+		'mail.manager'         => [\Illuminate\Mail\MailManager::class, \Illuminate\Contracts\Mail\Factory::class],
 		'mailer'               => [\Illuminate\Mail\Mailer::class, \Illuminate\Contracts\Mail\Mailer::class, \Illuminate\Contracts\Mail\MailQueue::class],
 		'auth.password'        => [\Illuminate\Auth\Passwords\PasswordBrokerManager::class, \Illuminate\Contracts\Auth\PasswordBrokerFactory::class],
 		'auth.password.broker' => [\Illuminate\Auth\Passwords\PasswordBroker::class, \Illuminate\Contracts\Auth\PasswordBroker::class],

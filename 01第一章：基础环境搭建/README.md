@@ -8,27 +8,27 @@
 ### Laravel
 ```
 F:\WWW\blog>php artisan
-Laravel Framework 7.30.6
+Laravel Framework 9.52.16
 
 Usage:
 command [options] [arguments]
 ...
 ... ...
 ```
-> 如果读者本地的Laravel版本不是7.30.6，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
+> 如果读者本地的Laravel版本不是9.52.16，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
 
 ### PHP
 ```
-vagrant@homestead:~$ php7.3 --version
-PHP 7.3.31-1+ubuntu20.04.1+deb.sury.org+1 (cli) (built: Sep 23 2021 21:36:16) ( NTS )
-Copyright (c) 1997-2018 The PHP Group
-Zend Engine v3.3.31, Copyright (c) 1998-2018 Zend Technologies
-    with Zend OPcache v7.3.31-1+ubuntu20.04.1+deb.sury.org+1, Copyright (c) 1999-2018, by Zend Technologies
+vagrant@homestead:~/code/blog$ php --version
+PHP 8.0.11 (cli) (built: Sep 23 2021 21:26:24) ( NTS )
+Copyright (c) The PHP Group
+Zend Engine v4.0.11, Copyright (c) Zend Technologies
+    with Zend OPcache v8.0.11, Copyright (c), by Zend Technologies
 ```
 > 笔者本机上采用的运行环境为Homestead, Homestead依赖Virtualbox虚拟机需要前置安装Vagrant、Virtualbox等软件。
 
 ### composer安装
-composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "7.*"`
+composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "9.*"`
 
 > 上述命令中的blog，实际上是我们安装完laravel框架后项目的文件夹名称
 
@@ -45,6 +45,8 @@ APP_DEBUG=true
 APP_URL=http://dev.blog.z
 
 LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
 
 DB_CONNECTION=mysql
 DB_HOST=192.168.10.1
@@ -55,18 +57,16 @@ DB_PASSWORD=123456
 
 BROADCAST_DRIVER=log
 CACHE_DRIVER=file
-QUEUE_CONNECTION=database
-QUEUE_DRIVER=database
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
 SESSION_DRIVER=file
-#SESSION_DRIVER=database
-#SESSION_DRIVER=redis//使用redis
-#SESSION_CONNECTION=session//使用redis
 SESSION_LIFETIME=120
+
+MEMCACHED_HOST=127.0.0.1
 
 REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
-REDIS_DB=0
 
 MAIL_DRIVER=smtp
 MAIL_HOST=smtp.mailtrap.io
@@ -74,6 +74,8 @@ MAIL_PORT=2525
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
 MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
@@ -83,10 +85,16 @@ AWS_BUCKET=
 PUSHER_APP_ID=
 PUSHER_APP_KEY=
 PUSHER_APP_SECRET=
+PUSHER_HOST=
+PUSHER_PORT=443
+PUSHER_SCHEME=https
 PUSHER_APP_CLUSTER=mt1
 
-MIX_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
-MIX_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_HOST="${PUSHER_HOST}"
+VITE_PUSHER_PORT="${PUSHER_PORT}"
+VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 
 ```
 

@@ -23,6 +23,16 @@ public function terminate($request, $response)
 	$this->terminateMiddleware($request, $response);
 
 	$this->app->terminate();
+	
+	foreach ($this->requestLifecycleDurationHandlers as ['threshold' => $threshold, 'handler' => $handler]) {
+        $end ??= Carbon::now();
+
+        if ($this->requestStartedAt->diffInMilliseconds($end) > $threshold) {
+            $handler($this->requestStartedAt, $request, $response);
+        }
+    }
+
+    $this->requestStartedAt = null;
 }
 ```
 
@@ -81,11 +91,15 @@ $this->app->terminate();
  *
  * @return void
  */
-public function terminate()
+ public function terminate()
 {
-	foreach ($this->terminatingCallbacks as $terminating) {
-		$this->call($terminating);
-	}
+    $index = 0;
+
+    while ($index < count($this->terminatingCallbacks)) {
+        $this->call($this->terminatingCallbacks[$index]);
+
+        $index++;
+    }
 }
 ```
 
@@ -98,10 +112,14 @@ public function terminate()
 ```php
 public function terminate()
 {
-	exit('ccc');
-	foreach ($this->terminatingCallbacks as $terminating) {
-		$this->call($terminating);
-	}
+    exit('ccc');
+	$index = 0;
+
+    while ($index < count($this->terminatingCallbacks)) {
+        $this->call($this->terminatingCallbacks[$index]);
+
+        $index++;
+    }
 }
 ```
 

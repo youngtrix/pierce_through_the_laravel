@@ -157,13 +157,20 @@ protected function bindPathsInContainer()
 {
     $this->instance('path', $this->path());
     $this->instance('path.base', $this->basePath());
-    $this->instance('path.lang', $this->langPath());
     $this->instance('path.config', $this->configPath());
     $this->instance('path.public', $this->publicPath());
     $this->instance('path.storage', $this->storagePath());
     $this->instance('path.database', $this->databasePath());
     $this->instance('path.resources', $this->resourcePath());
     $this->instance('path.bootstrap', $this->bootstrapPath());
+    
+    $this->useLangPath(value(function () {
+        if (is_dir($directory = $this->resourcePath('lang'))) {
+            return $directory;
+        }
+
+        return $this->basePath('lang');
+    }));
 }
 ````
 
@@ -206,30 +213,30 @@ public function instance($abstract, $instance)
 
 > instance方法全部代码的详细解读，请参考【附录二】
 
-那么，在框架需要用到路径的地方，必然会引用到这些键值对。如何验证呢？很简单，使用phpstorm编辑器的快捷键：ctrl + shift + f，全局搜索即可。我们以"path.storage"为例，在我们的blog项目中，全局搜索"path.storage"，会发现搜索到的结果如下：
+那么，在框架需要用到路径的地方，必然会引用到这些键值对。如何验证呢？很简单，使用phpstorm编辑器的快捷键：ctrl + shift + f，全局搜索即可。我们以"path.public"为例，在我们的blog项目中，全局搜索"path.public"，会发现搜索到的结果如下：
 
 ![](../images/pths.png)
 
 【图4.1】
 
-点开helpers.php文件中的第841行代码，追踪到下面这个方法：
+点开helpers.php文件中的第647行代码，追踪到下面这个方法：
 
 ````php
 /**
- * Get the path to the storage folder.
+ * Get the path to the public folder.
  *
  * @param  string  $path
  * @return string
  */
-function storage_path($path = '')
+function public_path($path = '')
 {
-    return app('path.storage').($path ? DIRECTORY_SEPARATOR.$path : $path);
+    return app()->make('path.public').($path ? DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR) : $path);
 }
 ````
 
 > vendor\laravel\framework\src\Illuminate\Foundation\helpers.php
 
-这里，让人感到疑惑的是：为什么获取"path.storage"这个"键值"的时候是直接将"path.storage"作为参数传入app这个函数的呢？为了弄清楚这个问题，我们继续去追踪app这个函数的具体实现：
+这里，让人感到疑惑的是：为什么获取"path.public"这个"键值"的时候是直接将"path.public"作为参数传入make这个函数的呢？为了弄清楚这个问题，我们继续去追踪app这个函数的具体实现：
 
 ````php
 /**
@@ -251,9 +258,9 @@ function app($abstract = null, array $parameters = [])
 
 > vendor\laravel\framework\src\Illuminate\Foundation\helpers.php
 
-显然，我们发现在`app('path.storage')`这种方式的调用情况下，代码执行的是if之外的那个return语句。这样一来，我们必然会去查看Container这个类的`getInstance`方法，和`Container::getInstance()->make($abstract, $parameters)`这条语句做了什么：
+显然，我们发现在`app()->make('path.public')`这种方式的调用情况下，代码执行的是if里面的那个return语句。我们继续追踪Container这个类的`getInstance`方法：
 
-首先是getInstance方法：
+getInstance方法：
 
 ````php
 /**
@@ -421,8 +428,8 @@ if (isset($this->instances[$abstract]) && ! $needsContextualBuild) {
 
 在前面基础路径的设置部分，代码正是将路径信息保存在了容器对象的成员变量instances中。
 
-现在我们就来回答前面提到的问题：为什么获取path.storage这个"键值"的时候是直接将path.storage作为参数传入app这个函数的？
+现在我们就来回答前面提到的问题：为什么获取path.public这个"键值"的时候是直接将path.public作为参数传入app这个函数的？
 
-大家可以回到本章引用的【图4.1】，从这个图中，可以很明显得看到有php语句将"path.storage"传递给了instance方法。而instance方法会把这个传入的字符串作为键名存储到容器对象的成员变量instances中。当再次使用make方法获取这个键名对应的值时，是优先从容器对象的成员变量instances数组中获取，检测到有这个键名并且当前无需上下文构建时直接返回这个保存的键值。
+大家可以回到本章引用的【图4.1】，从这个图中，可以很明显得看到有php语句将"path.public"传递给了instance方法。而instance方法会把这个传入的字符串作为键名存储到容器对象的成员变量instances中。当再次使用make方法获取这个键名对应的值时，是优先从容器对象的成员变量instances数组中获取，检测到有这个键名并且当前无需上下文构建时直接返回这个保存的键值。
 
 至此，我们终于理解了四个动作中的第一个动作：设置基础目录路径。这一步完成之后，以后框架需要使用到基础路径的地方都会和这里产生联系。我们终于迈出了第一步。
