@@ -28,6 +28,10 @@ public function bind($abstract, $concrete = null, $shared = false)
     // bound into this container to the abstract type and we will just wrap it
     // up inside its own Closure to give us more convenience when extending.
     if (! $concrete instanceof Closure) {
+        if (! is_string($concrete)) {
+            throw new TypeError(self::class.'::bind(): Argument #2 ($concrete) must be of type Closure|string|null');
+        }
+
         $concrete = $this->getClosure($abstract, $concrete);
     }
 

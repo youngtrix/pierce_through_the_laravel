@@ -144,7 +144,7 @@ if ($this->isBooted()) {
 
 大家可以通过"var_dump中断测试"(参考【附录一】)来测试一下，在默认情况下，注册第一个EventServiceProvider时，`$this->isBooted()`这里返回值是false。
 
-也就是说，最开始register的时候，并没有走到这个if里面去。然而在if里面加exit语句，刷新应用主页时，代码却能成功进入到if中去。
+也就是说，最开始register的时候，并没有走到这个if里面去。在if里面加exit语句，刷新应用主页时，代码也不会进入到if中去。
 
 如下，我们进行两次var_dump中断测试：
 

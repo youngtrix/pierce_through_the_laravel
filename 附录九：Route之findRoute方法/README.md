@@ -13,9 +13,13 @@
  */
 protected function findRoute($request)
 {
-	$this->current = $route = $this->routes->match($request);
+    $this->events->dispatch(new Routing($request));
 
-	$this->container->instance(Route::class, $route);
+    $this->current = $route = $this->routes->match($request);
+
+    $route->setContainer($this->container);
+    
+    $this->container->instance(Route::class, $route);
 
 	return $route;
 }
@@ -143,7 +147,9 @@ $response = $kernel->handle(
 
 接下来我们来看`findRoute`方法的内部代码：
 
-第一行`$this->current = $route = $this->routes->match($request);`，这里调用当前成员变量$routes身上的`match`方法，那么我们必然要去追踪$routes是什么：
+第一行`$this->events->dispatch(new Routing($request));`，这里调用触发事件的方法dispatch。
+
+第二行`$this->current = $route = $this->routes->match($request);`，这里调用当前成员变量$routes身上的`match`方法，那么我们必然要去追踪$routes是什么：
 
 通过搜索：routes（在Router类文件中），我们在Router类的构造函数中找到下面的代码：
 

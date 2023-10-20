@@ -15,12 +15,6 @@ define('LARAVEL_START', microtime(true));
 
 >mircotime函数如果不加任何参数，返回的是一个空格隔开的字符串，时间戳 + 微秒数）
 
-接下来这行代码：
-
-```php
-require __DIR__.'/../vendor/autoload.php';
-```
-
 继续看后面的代码：
 ```php
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {

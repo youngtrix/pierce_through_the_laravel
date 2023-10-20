@@ -128,3 +128,44 @@ public function terminate()
 程序并不会输出ccc，而是正常显示首页：
 
 ![](../images/test_11.png)
+
+最后一段代码：
+```php
+foreach ($this->requestLifecycleDurationHandlers as ['threshold' => $threshold, 'handler' => $handler]) {
+    $end ??= Carbon::now();
+
+    if ($this->requestStartedAt->diffInMilliseconds($end) > $threshold) {
+        $handler($this->requestStartedAt, $request, $response);
+    }
+}
+
+$this->requestStartedAt = null;
+```
+这里是Laravel9新增的部分，用于处理请求时间过长的情况。我们全局搜索requestLifecycleDurationHandlers关键字，可以发现只有下面这个方法
+有对其进行赋值的操作：
+```
+/**
+ * Register a callback to be invoked when the requests lifecycle duration exceeds a given amount of time.
+ *
+ * @param  \DateTimeInterface|\Carbon\CarbonInterval|float|int  $threshold
+ * @param  callable  $handler
+ * @return void
+ */
+public function whenRequestLifecycleIsLongerThan($threshold, $handler)
+{
+    $threshold = $threshold instanceof DateTimeInterface
+        ? $this->secondsUntil($threshold) * 1000
+        : $threshold;
+
+    $threshold = $threshold instanceof CarbonInterval
+        ? $threshold->totalMilliseconds
+        : $threshold;
+
+    $this->requestLifecycleDurationHandlers[] = [
+        'threshold' => $threshold,
+        'handler' => $handler,
+    ];
+}
+```
+继续全局搜索whenRequestLifecycleIsLongerThan，除了方法定义的地方外，没有发现有别的代码包含这个方法的调用。因此，这个方法需要
+开发者主动调用。

@@ -19,8 +19,15 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
     
+    // First we'll fire any event handlers which handle the "before" resolving of
+    // specific types. This gives some hooks the chance to add various extends
+    // calls to change the resolution of objects that they're interested in.
+    if ($raiseEvents) {
+        $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+    }
+   
     $concrete = $this->getContextualConcrete($abstract);
-
+   
     $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 
     // If an instance of the type is currently being managed as a singleton we'll
@@ -141,7 +148,7 @@ protected function fireResolvingCallbacks($abstract, $object)
 }
 ```
 
-这个方法，实际就是触发执行绑定在解析对象上的回调事件。而回调事件，又分为几种：全局解析中事件，全局解析后事件，类解析中事件，类解析后事件，这些事件全部作为容器的保护成员定义在Container类中：
+这个方法，实际就是触发执行绑定在解析对象上的回调事件。而回调事件，又分为几种：全局解析前事件，全局解析中事件，全局解析后事件，类解析前事件，类解析中事件，类解析后事件，这些事件全部作为容器的保护成员定义在Container类中：
 
 ```php
 /**
@@ -150,6 +157,13 @@ protected function fireResolvingCallbacks($abstract, $object)
  * @var array[]
  */
 protected $reboundCallbacks = [];
+
+/**
+ * All of the global before resolving callbacks.
+ *
+ * @var \Closure[]
+ */
+protected $globalBeforeResolvingCallbacks = [];
 
 /**
  * All of the global resolving callbacks.
@@ -164,6 +178,13 @@ protected $globalResolvingCallbacks = [];
  * @var \Closure[]
  */
 protected $globalAfterResolvingCallbacks = [];
+
+/**
+ * All of the before resolving callbacks by class type.
+ *
+ * @var array[]
+ */
+protected $beforeResolvingCallbacks = [];
 
 /**
  * All of the resolving callbacks by class type.
@@ -316,6 +337,13 @@ public function getAlias($abstract)
 因此，这里程序优先去查看aliases数组中是否存在相应的键，如果不存在直接返回$abstract变量，否则返回的是alias数组相应键上的值。
 
 接着看下面的代码：
+
+```
+if ($raiseEvents) {
+   $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+}
+```
+这部分代码是在执行类解析前事件。
 
 ```php
 $concrete = $this->getContextualConcrete($abstract);
