@@ -68,6 +68,7 @@ public function register($provider, $force = false)
 
     if (property_exists($provider, 'singletons')) {
         foreach ($provider->singletons as $key => $value) {
+            $key = is_int($key) ? $value : $key;
             $this->singleton($key, $value);
         }
     }
@@ -383,48 +384,141 @@ public function boot()
 这样我们就明白了：在应用启动之前，app容器已经"接收"完了所有的ServiceProvider类型对象，而每个ServiceProvider类型对象的保护成员app又都指向了容器本身，这必然造成大量的递归引用。所以这时候打印一个provider对象的信息就不是那么容易的事情。这里我们可以简单分析一下：程序先调用语句创建出一个对象A，对象A调用语句创建出对象B，同时把A本身注入到B中去，这时代码中一共包含了3个对象的信息：A，A.B,  A.B.A（最后这个A.B.A就是递归引用了）。继续调用语句创建出对象C，情况变成了：A, A.B, A.C, A.B.A, A.C.A。即此时变成了5个对象，其中包含两个递归引用。即我们每多注册一个ServiceProvider，对象数量就增加2，并且多一个递归引用。而在我们的配置文件`config/app.php`文件中定义了多个需要注册的providers：
 
 ```php
-'providers' => [
-	/*
-	* Laravel Framework Service Providers...
-	*/
-	Illuminate\Auth\AuthServiceProvider::class,
-	Illuminate\Broadcasting\BroadcastServiceProvider::class,
-	Illuminate\Bus\BusServiceProvider::class,
-	Illuminate\Cache\CacheServiceProvider::class,
-	Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
-	Illuminate\Cookie\CookieServiceProvider::class,
-	Illuminate\Database\DatabaseServiceProvider::class,
-	Illuminate\Encryption\EncryptionServiceProvider::class,
-	Illuminate\Filesystem\FilesystemServiceProvider::class,
-	Illuminate\Foundation\Providers\FoundationServiceProvider::class,
-	Illuminate\Hashing\HashServiceProvider::class,
-	Illuminate\Mail\MailServiceProvider::class,
-	Illuminate\Notifications\NotificationServiceProvider::class,
-	Illuminate\Pagination\PaginationServiceProvider::class,
-	Illuminate\Pipeline\PipelineServiceProvider::class,
-	Illuminate\Queue\QueueServiceProvider::class,
-	Illuminate\Redis\RedisServiceProvider::class,
-	Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
-	Illuminate\Session\SessionServiceProvider::class,
-	Illuminate\Translation\TranslationServiceProvider::class,
-	Illuminate\Validation\ValidationServiceProvider::class,
-	Illuminate\View\ViewServiceProvider::class,
+'providers' => ServiceProvider::defaultProviders()->merge([
+    /*
+     * Package Service Providers...
+     */
 
-	/*
-	* Package Service Providers...
-	*/
-
-	/*
-	* Application Service Providers...
-	*/
-	App\Providers\AppServiceProvider::class,
-	App\Providers\AuthServiceProvider::class,
-	// App\Providers\BroadcastServiceProvider::class,
-	App\Providers\EventServiceProvider::class,
-	App\Providers\RouteServiceProvider::class,
-
-],
+    /*
+     * Application Service Providers...
+     */
+    App\Providers\AppServiceProvider::class,
+    App\Providers\AuthServiceProvider::class,
+    // App\Providers\BroadcastServiceProvider::class,
+    App\Providers\EventServiceProvider::class,
+    App\Providers\RouteServiceProvider::class,
+])->toArray(),
 ```
+追踪`defaultProviders()`方法：
+```php
+/**
+ * Get the default providers for a Laravel application.
+ *
+ * @return \Illuminate\Support\DefaultProviders
+ */
+public static function defaultProviders()
+{
+    return new DefaultProviders;
+}
+```
+> vendor/laravel/framework/src/Illuminate/Support/ServiceProvider.php
+
+继续追踪DefaultProviders类:
+```php
+<?php
+
+namespace Illuminate\Support;
+
+class DefaultProviders
+{
+    /**
+     * The current providers.
+     *
+     * @var array
+     */
+    protected $providers;
+
+    /**
+     * Create a new default provider collection.
+     *
+     * @return void
+     */
+    public function __construct(?array $providers = null)
+    {
+        $this->providers = $providers ?: [
+            \Illuminate\Auth\AuthServiceProvider::class,
+            \Illuminate\Broadcasting\BroadcastServiceProvider::class,
+            \Illuminate\Bus\BusServiceProvider::class,
+            \Illuminate\Cache\CacheServiceProvider::class,
+            \Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
+            \Illuminate\Cookie\CookieServiceProvider::class,
+            \Illuminate\Database\DatabaseServiceProvider::class,
+            \Illuminate\Encryption\EncryptionServiceProvider::class,
+            \Illuminate\Filesystem\FilesystemServiceProvider::class,
+            \Illuminate\Foundation\Providers\FoundationServiceProvider::class,
+            \Illuminate\Hashing\HashServiceProvider::class,
+            \Illuminate\Mail\MailServiceProvider::class,
+            \Illuminate\Notifications\NotificationServiceProvider::class,
+            \Illuminate\Pagination\PaginationServiceProvider::class,
+            \Illuminate\Pipeline\PipelineServiceProvider::class,
+            \Illuminate\Queue\QueueServiceProvider::class,
+            \Illuminate\Redis\RedisServiceProvider::class,
+            \Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
+            \Illuminate\Session\SessionServiceProvider::class,
+            \Illuminate\Translation\TranslationServiceProvider::class,
+            \Illuminate\Validation\ValidationServiceProvider::class,
+            \Illuminate\View\ViewServiceProvider::class,
+        ];
+    }
+
+    /**
+     * Merge the given providers into the provider collection.
+     *
+     * @param  array  $providers
+     * @return static
+     */
+    public function merge(array $providers)
+    {
+        $this->providers = array_merge($this->providers, $providers);
+
+        return new static($this->providers);
+    }
+
+    /**
+     * Replace the given providers with other providers.
+     *
+     * @param  array  $items
+     * @return static
+     */
+    public function replace(array $replacements)
+    {
+        $current = collect($this->providers);
+
+        foreach ($replacements as $from => $to) {
+            $key = $current->search($from);
+
+            $current = $key ? $current->replace([$key => $to]) : $current;
+        }
+
+        return new static($current->values()->toArray());
+    }
+
+    /**
+     * Disable the given providers.
+     *
+     * @param  array  $providers
+     * @return static
+     */
+    public function except(array $providers)
+    {
+        return new static(collect($this->providers)
+                ->reject(fn ($p) => in_array($p, $providers))
+                ->values()
+                ->toArray());
+    }
+
+    /**
+     * Convert the provider collection to an array.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->providers;
+    }
+}
+```
+这样我们就能清楚，`ServiceProvider::defaultProviders()->merge...`执行完后有多少个ServiceProvider类需要注册。
 
 > 当然还需要加上系统默认注册的3个ServiceProvider类型的类，才是总的需要注册的Providers数。
 

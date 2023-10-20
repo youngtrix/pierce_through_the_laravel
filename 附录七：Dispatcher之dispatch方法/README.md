@@ -301,12 +301,10 @@ string(71) "bootstrapping: Illuminate\Foundation\Bootstrap\LoadEnvironmentVariab
 ```php
 public function getListeners($eventName)
 {
-	$listeners = $this->listeners[$eventName] ?? [];
-
 	$listeners = array_merge(
-		$listeners,
-		$this->wildcardsCache[$eventName] ?? $this->getWildcardListeners($eventName)
-	);
+        $this->prepareListeners($eventName),
+        $this->wildcardsCache[$eventName] ?? $this->getWildcardListeners($eventName)
+    );
 	
 	$ret = class_exists($eventName, false)
 	    ? $this->addInterfaceListeners($eventName, $listeners)
@@ -625,19 +623,33 @@ public function boot()
  * @param  mixed  $listener
  * @return void
  */
-public function listen($events, $listener)
+public function listen($events, $listener = null)
 {
+    if ($events instanceof Closure) {
+        return collect($this->firstClosureParameterTypes($events))
+            ->each(function ($event) use ($events) {
+                $this->listen($event, $events);
+            });
+    } elseif ($events instanceof QueuedClosure) {
+        return collect($this->firstClosureParameterTypes($events->closure))
+            ->each(function ($event) use ($events) {
+                $this->listen($event, $events->resolve());
+            });
+    } elseif ($listener instanceof QueuedClosure) {
+        $listener = $listener->resolve();
+    }
+    
 	foreach ((array) $events as $event) {
 		if (Str::contains($event, '*')) {
 			$this->setupWildcardListen($event, $listener);
 		} else {
-			$this->listeners[$event][] = $this->makeListener($listener);
+			$this->listeners[$event][] = $listener;
 		}
 	}
 }
 ```
 
-在这个方法中，我们重点关注else分支中的语句：`$this->listeners[$event][] = $this->makeListener($listener);`，继续追踪`makeListener`方法：
+在这个方法中，我们重点关注最后循环体中else分支中的语句：`$this->listeners[$event][] = $this->makeListener($listener);`，继续追踪`makeListener`方法：
 
 ```php
 /**

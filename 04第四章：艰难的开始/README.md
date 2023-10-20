@@ -158,11 +158,16 @@ protected function bindPathsInContainer()
     $this->instance('path', $this->path());
     $this->instance('path.base', $this->basePath());
     $this->instance('path.config', $this->configPath());
-    $this->instance('path.public', $this->publicPath());
-    $this->instance('path.storage', $this->storagePath());
     $this->instance('path.database', $this->databasePath());
+    $this->instance('path.public', $this->publicPath());
     $this->instance('path.resources', $this->resourcePath());
-    $this->instance('path.bootstrap', $this->bootstrapPath());
+    $this->instance('path.storage', $this->storagePath());
+    
+    $this->useBootstrapPath(value(function () {
+        return is_dir($directory = $this->basePath('.laravel'))
+                    ? $directory
+                    : $this->basePath('bootstrap');
+    }));
     
     $this->useLangPath(value(function () {
         if (is_dir($directory = $this->resourcePath('lang'))) {
@@ -213,30 +218,34 @@ public function instance($abstract, $instance)
 
 > instance方法全部代码的详细解读，请参考【附录二】
 
-那么，在框架需要用到路径的地方，必然会引用到这些键值对。如何验证呢？很简单，使用phpstorm编辑器的快捷键：ctrl + shift + f，全局搜索即可。我们以"path.public"为例，在我们的blog项目中，全局搜索"path.public"，会发现搜索到的结果如下：
+那么，在框架需要用到路径的地方，必然会引用到这些键值对。如何验证呢？很简单，使用phpstorm编辑器的快捷键：ctrl + shift + f，全局搜索即可。我们以"path.base"为例，在我们的blog项目中，全局搜索"path.public"，会发现搜索到的结果如下：
 
 ![](../images/pths.png)
 
 【图4.1】
 
-点开helpers.php文件中的第647行代码，追踪到下面这个方法：
+点开EnsureRelativePaths.php文件中的第15行代码，追踪到下面这个方法：
 
 ````php
 /**
- * Get the path to the public folder.
+ * Ensures the given string only contains relative paths.
  *
- * @param  string  $path
+ * @param  string  $string
  * @return string
  */
-function public_path($path = '')
+public function __invoke($string)
 {
-    return app()->make('path.public').($path ? DIRECTORY_SEPARATOR.ltrim($path, DIRECTORY_SEPARATOR) : $path);
+    if (function_exists('app') && app()->has('path.base')) {
+        $string = str_replace(base_path().'/', '', $string);
+    }
+
+    return $string;
 }
 ````
 
-> vendor\laravel\framework\src\Illuminate\Foundation\helpers.php
+> vendor\laravel\framework\src\Illuminate\Console\View\Components\Mutators\EnsureRelativePaths.php
 
-这里，让人感到疑惑的是：为什么获取"path.public"这个"键值"的时候是直接将"path.public"作为参数传入make这个函数的呢？为了弄清楚这个问题，我们继续去追踪app这个函数的具体实现：
+这里，让人感到疑惑的是：为什么获取"path.base"这个"键值"的时候是直接将"path.base"作为参数传入has这个函数的呢？为了弄清楚这个问题，我们继续去追踪app这个函数的具体实现：
 
 ````php
 /**
@@ -258,7 +267,7 @@ function app($abstract = null, array $parameters = [])
 
 > vendor\laravel\framework\src\Illuminate\Foundation\helpers.php
 
-显然，我们发现在`app()->make('path.public')`这种方式的调用情况下，代码执行的是if里面的那个return语句。我们继续追踪Container这个类的`getInstance`方法：
+显然，我们发现在`app()->has('path.base')`这种方式的调用情况下，代码执行的是if里面的那个return语句。我们继续追踪Container这个类的`getInstance`方法：
 
 getInstance方法：
 
@@ -322,105 +331,45 @@ new B()->create(); // 返回类B的实例
 
 ### make方法
 
-既然getInstance方法返回的是Container自身，那么找到make方法就很简单了，直接在Container.php中查找"function make"即可：
+既然getInstance方法返回的是Container自身，那么找到has方法就很简单了，直接在Container.php中查找"function has"即可：
 
 ````php
 /**
- * Resolve the given type from the container.
+ * {@inheritdoc}
  *
- * @param  string  $abstract
- * @param  array  $parameters
- * @return mixed
- *
- * @throws \Illuminate\Contracts\Container\BindingResolutionException
+ * @return bool
  */
-public function make($abstract, array $parameters = [])
+public function has(string $id): bool
 {
-    return $this->resolve($abstract, $parameters);
+    return $this->bound($id);
 }
 ````
 
 > vendor/laravel/framework/src/Illuminate/Container/Container.php
 
-继续追踪resolve方法：
+继续追踪bound方法：
 
 ````php
 /**
- * Resolve the given type from the container.
+ * Determine if the given abstract type has been bound.
  *
  * @param  string  $abstract
- * @param  array  $parameters
- * @param  bool   $raiseEvents
- * @return mixed
- *
- * @throws \Illuminate\Contracts\Container\BindingResolutionException
+ * @return bool
  */
-protected function resolve($abstract, $parameters = [], $raiseEvents = true)
+public function bound($abstract)
 {
-    $abstract = $this->getAlias($abstract);
-
-    $concrete = $this->getContextualConcrete($abstract);
-
-    $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
-
-    // If an instance of the type is currently being managed as a singleton we'll
-    // just return an existing instance instead of instantiating new instances
-    // so the developer can keep using the same objects instance every time.
-    if (isset($this->instances[$abstract]) && ! $needsContextualBuild) {
-        return $this->instances[$abstract];
-    }
-
-    $this->with[] = $parameters;
-
-    if (is_null($concrete)) {
-        $concrete = $this->getConcrete($abstract);
-    }
-
-    // We're ready to instantiate an instance of the concrete type registered for
-    // the binding. This will instantiate the types, as well as resolve any of
-    // its "nested" dependencies recursively until all have gotten resolved.
-    if ($this->isBuildable($concrete, $abstract)) {
-        $object = $this->build($concrete);
-    } else {
-        $object = $this->make($concrete);
-    }
-
-    // If we defined any extenders for this type, we'll need to spin through them
-    // and apply them to the object being built. This allows for the extension
-    // of services, such as changing configuration or decorating the object.
-    foreach ($this->getExtenders($abstract) as $extender) {
-        $object = $extender($object, $this);
-    }
-
-    // If the requested type is registered as a singleton we'll want to cache off
-    // the instances in "memory" so we can return it later without creating an
-    // entirely new instance of an object on each subsequent request for it.
-    if ($this->isShared($abstract) && ! $needsContextualBuild) {
-        $this->instances[$abstract] = $object;
-    }
-
-    if ($raiseEvents) {
-        $this->fireResolvingCallbacks($abstract, $object);
-    }
-
-    // Before returning, we will also set the resolved flag to "true" and pop off
-    // the parameter overrides for this build. After those two things are done
-    // we will be ready to return back the fully constructed class instance.
-    $this->resolved[$abstract] = true;
-
-    array_pop($this->with);
-
-    return $object;
+    return isset($this->bindings[$abstract]) ||
+           isset($this->instances[$abstract]) ||
+           $this->isAlias($abstract);
 }
 ````
 
 > vendor/laravel/framework/src/Illuminate/Container/Container.php
 
-要完全理解这段代码，我们必须对Container类本身有深入的分析和了解(参考【附录三】)。在本节中，我们只需要关注到"获取基础路径"的代码实现部分即可。通过阅读，我们很容易发现，下面这一小段代码，正是我们要找的部分：
+通过阅读，我们很容易发现，下面这一小段代码，正是我们要找的部分：
 
 ````php
-if (isset($this->instances[$abstract]) && ! $needsContextualBuild) {
-	return $this->instances[$abstract];
+isset($this->instances[$abstract])
 }
 ````
 
@@ -428,8 +377,8 @@ if (isset($this->instances[$abstract]) && ! $needsContextualBuild) {
 
 在前面基础路径的设置部分，代码正是将路径信息保存在了容器对象的成员变量instances中。
 
-现在我们就来回答前面提到的问题：为什么获取path.public这个"键值"的时候是直接将path.public作为参数传入app这个函数的？
+现在我们就来回答前面提到的问题：为什么获取path.base这个"键值"的时候是直接将path.base作为参数传入app这个函数的？
 
-大家可以回到本章引用的【图4.1】，从这个图中，可以很明显得看到有php语句将"path.public"传递给了instance方法。而instance方法会把这个传入的字符串作为键名存储到容器对象的成员变量instances中。当再次使用make方法获取这个键名对应的值时，是优先从容器对象的成员变量instances数组中获取，检测到有这个键名并且当前无需上下文构建时直接返回这个保存的键值。
+大家可以回到本章引用的【图4.1】，从这个图中，可以很明显得看到有php语句将"path.base"传递给了instance方法。而instance方法会把这个传入的字符串作为键名存储到容器对象的成员变量instances中。当再次使用make方法获取这个键名对应的值时，是优先从容器对象的成员变量instances数组中获取，检测到有这个键名并且当前无需上下文构建时直接返回这个保存的键值。
 
 至此，我们终于理解了四个动作中的第一个动作：设置基础目录路径。这一步完成之后，以后框架需要使用到基础路径的地方都会和这里产生联系。我们终于迈出了第一步。

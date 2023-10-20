@@ -8,27 +8,26 @@
 ### Laravel
 ```
 F:\WWW\blog>php artisan
-Laravel Framework 9.52.16
+Laravel Framework 10.27.0
 
 Usage:
 command [options] [arguments]
 ...
 ... ...
 ```
-> 如果读者本地的Laravel版本不是9.52.16，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
+> 如果读者本地的Laravel版本不是10.27.0，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
 
 ### PHP
 ```
 vagrant@homestead:~/code/blog$ php --version
-PHP 8.0.11 (cli) (built: Sep 23 2021 21:26:24) ( NTS )
+PHP 8.1.24 (cli) (built: Oct 19 2023 13:40:52) (NTS)
 Copyright (c) The PHP Group
-Zend Engine v4.0.11, Copyright (c) Zend Technologies
-    with Zend OPcache v8.0.11, Copyright (c), by Zend Technologies
+Zend Engine v4.1.24, Copyright (c) Zend Technologies
 ```
 > 笔者本机上采用的运行环境为Homestead, Homestead依赖Virtualbox虚拟机需要前置安装Vagrant、Virtualbox等软件。
 
 ### composer安装
-composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "9.*"`
+composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "10.*"`
 
 > 上述命令中的blog，实际上是我们安装完laravel框架后项目的文件夹名称
 
@@ -81,6 +80,7 @@ AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_DEFAULT_REGION=us-east-1
 AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
 
 PUSHER_APP_ID=
 PUSHER_APP_KEY=
@@ -90,6 +90,7 @@ PUSHER_PORT=443
 PUSHER_SCHEME=https
 PUSHER_APP_CLUSTER=mt1
 
+VITE_APP_NAME="${APP_NAME}"
 VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
 VITE_PUSHER_HOST="${PUSHER_HOST}"
 VITE_PUSHER_PORT="${PUSHER_PORT}"

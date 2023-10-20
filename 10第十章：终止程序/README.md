@@ -24,6 +24,12 @@ public function terminate($request, $response)
 
 	$this->app->terminate();
 	
+	if ($this->requestStartedAt === null) {
+        return;
+    }
+
+    $this->requestStartedAt->setTimezone($this->app['config']->get('app.timezone') ?? 'UTC');
+	
 	foreach ($this->requestLifecycleDurationHandlers as ['threshold' => $threshold, 'handler' => $handler]) {
         $end ??= Carbon::now();
 
@@ -131,6 +137,10 @@ public function terminate()
 
 最后一段代码：
 ```php
+if ($this->requestStartedAt === null) {
+    return;
+}
+
 foreach ($this->requestLifecycleDurationHandlers as ['threshold' => $threshold, 'handler' => $handler]) {
     $end ??= Carbon::now();
 
@@ -141,7 +151,7 @@ foreach ($this->requestLifecycleDurationHandlers as ['threshold' => $threshold, 
 
 $this->requestStartedAt = null;
 ```
-这里是Laravel9新增的部分，用于处理请求时间过长的情况。我们全局搜索requestLifecycleDurationHandlers关键字，可以发现只有下面这个方法
+这里是Laravel9之后新增的部分，用于处理请求时间过长的情况。我们全局搜索requestLifecycleDurationHandlers关键字，可以发现只有下面这个方法
 有对其进行赋值的操作：
 ```
 /**
