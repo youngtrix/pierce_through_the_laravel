@@ -13,9 +13,13 @@
  */
 protected function findRoute($request)
 {
-	$this->current = $route = $this->routes->match($request);
+    $this->events->dispatch(new Routing($request));
 
-	$this->container->instance(Route::class, $route);
+    $this->current = $route = $this->routes->match($request);
+
+    $route->setContainer($this->container);
+    
+    $this->container->instance(Route::class, $route);
 
 	return $route;
 }
@@ -84,7 +88,7 @@ $response = $kernel->handle(
   }
   ```
 
-  
+
 
 - `sendRequestThroughRouter`方法调用`Pipeline`类的`then`方法，`then`方法继续调用Kernel类的`dispatchToRouter`方法（5）
 
@@ -104,7 +108,7 @@ $response = $kernel->handle(
   }
   ```
 
-  
+
 
   ```php
   protected function dispatchToRouter()
@@ -117,7 +121,7 @@ $response = $kernel->handle(
   }
   ```
 
-  
+
 
 - `dispatchToRouter`方法调用Kernel类成员变量router上的`dispatch`方法（其实就是Router类的`dispatch`方法），`dispatch`方法又继续调用Router类的`dispatchToRoute`方法：（6）
 
@@ -130,7 +134,7 @@ $response = $kernel->handle(
   }
   ```
 
-  
+
 
   ```php
   public function dispatchToRoute(Request $request)
@@ -143,7 +147,9 @@ $response = $kernel->handle(
 
 接下来我们来看`findRoute`方法的内部代码：
 
-第一行`$this->current = $route = $this->routes->match($request);`，这里调用当前成员变量$routes身上的`match`方法，那么我们必然要去追踪$routes是什么：
+第一行`$this->events->dispatch(new Routing($request));`，这里调用触发事件的方法dispatch。
+
+第二行`$this->current = $route = $this->routes->match($request);`，这里调用当前成员变量$routes身上的`match`方法，那么我们必然要去追踪$routes是什么：
 
 通过搜索：routes（在Router类文件中），我们在Router类的构造函数中找到下面的代码：
 

@@ -19,8 +19,15 @@ protected function resolve($abstract, $parameters = [], $raiseEvents = true)
 {
     $abstract = $this->getAlias($abstract);
     
+    // First we'll fire any event handlers which handle the "before" resolving of
+    // specific types. This gives some hooks the chance to add various extends
+    // calls to change the resolution of objects that they're interested in.
+    if ($raiseEvents) {
+        $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+    }
+   
     $concrete = $this->getContextualConcrete($abstract);
-
+   
     $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 
     // If an instance of the type is currently being managed as a singleton we'll
@@ -141,7 +148,7 @@ protected function fireResolvingCallbacks($abstract, $object)
 }
 ```
 
-这个方法，实际就是触发执行绑定在解析对象上的回调事件。而回调事件，又分为几种：全局解析中事件，全局解析后事件，类解析中事件，类解析后事件，这些事件全部作为容器的保护成员定义在Container类中：
+这个方法，实际就是触发执行绑定在解析对象上的回调事件。而回调事件，又分为几种：全局解析前事件，全局解析中事件，全局解析后事件，类解析前事件，类解析中事件，类解析后事件，这些事件全部作为容器的保护成员定义在Container类中：
 
 ```php
 /**
@@ -150,6 +157,13 @@ protected function fireResolvingCallbacks($abstract, $object)
  * @var array[]
  */
 protected $reboundCallbacks = [];
+
+/**
+ * All of the global before resolving callbacks.
+ *
+ * @var \Closure[]
+ */
+protected $globalBeforeResolvingCallbacks = [];
 
 /**
  * All of the global resolving callbacks.
@@ -164,6 +178,13 @@ protected $globalResolvingCallbacks = [];
  * @var \Closure[]
  */
 protected $globalAfterResolvingCallbacks = [];
+
+/**
+ * All of the before resolving callbacks by class type.
+ *
+ * @var array[]
+ */
+protected $beforeResolvingCallbacks = [];
 
 /**
  * All of the resolving callbacks by class type.
@@ -317,6 +338,13 @@ public function getAlias($abstract)
 
 接着看下面的代码：
 
+```
+if ($raiseEvents) {
+   $this->fireBeforeResolvingCallbacks($abstract, $parameters);
+}
+```
+这部分代码是在执行类解析前事件。
+
 ```php
 $concrete = $this->getContextualConcrete($abstract);
 $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
@@ -326,7 +354,7 @@ $needsContextualBuild = ! empty($parameters) || ! is_null($concrete);
 
 什么是上下文呢？
 
-> 每一段程序都有很多外部变量。只有像 Add 这种简单的函数才是没有外部变量的。一旦你的一段程序有了外部变量，这段程序就不完整，不能独立运行。你为了使他们运行，就要给所有的外部变量一个一个写一些值进去。这些值的集合就叫上下文。 
+> 每一段程序都有很多外部变量。只有像 Add 这种简单的函数才是没有外部变量的。一旦你的一段程序有了外部变量，这段程序就不完整，不能独立运行。你为了使他们运行，就要给所有的外部变量一个一个写一些值进去。这些值的集合就叫上下文。
 
 简单说，就是解析一个对象的时候，有些对象是需要外部的一些依赖的。那他在创建的时候就要用到"上下文"把依赖引入。
 
