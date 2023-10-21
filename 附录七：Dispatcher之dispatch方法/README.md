@@ -359,8 +359,6 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        parent::boot();
-
         //
     }
 }
@@ -567,9 +565,13 @@ public function boot()
  */
 protected function bootProvider(ServiceProvider $provider)
 {
-	if (method_exists($provider, 'boot')) {
-		return $this->call([$provider, 'boot']);
-	}
+	$provider->callBootingCallbacks();
+
+    if (method_exists($provider, 'boot')) {
+        $this->call([$provider, 'boot']);
+    }
+
+    $provider->callBootedCallbacks();
 }
 ```
 
@@ -583,33 +585,111 @@ protected function bootProvider(ServiceProvider $provider)
  */
 public function boot()
 {
-	parent::boot();
-
 	//
 }
 ```
-
-继续追踪它的父类的boot方法：
-
+这里，我们看到父类中的boot方法什么也没做，从Laravel 8开始，事件的注册不再通过boot方法进行触发(在【处理请求】这一章的6个阶段中，对应最后一个类BootProviders的bootstrap方法)。而是改到了
+【处理请求】这一章中第5个类RegisterProviders的bootstrap方法中。
+下面就是类`vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/RegisterProviders`的源码：
 ```php
+<?php
+
+namespace Illuminate\Foundation\Bootstrap;
+
+use Illuminate\Contracts\Foundation\Application;
+
+class RegisterProviders
+{
+    /**
+     * Bootstrap the given application.
+     *
+     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @return void
+     */
+    public function bootstrap(Application $app)
+    {
+        $app->registerConfiguredProviders();
+    }
+}
+```
+继续追踪registerConfiguredProviders方法(vendor/laravel/framework/src/Illuminate/Foundation/Application.php)：
+```php
+/**
+ * Register all of the configured providers.
+ *
+ * @return void
+ */
+public function registerConfiguredProviders()
+{
+    $providers = Collection::make($this->make('config')->get('app.providers'))
+                    ->partition(function ($provider) {
+                        return strpos($provider, 'Illuminate\\') === 0;
+                    });
+
+    $providers->splice(1, 0, [$this->make(PackageManifest::class)->providers()]);
+
+    (new ProviderRepository($this, new Filesystem, $this->getCachedServicesPath()))
+                ->load($providers->collapse()->toArray());
+}
+```
+在这个方法中，核心的方法是最后这条语句：
+```php
+ (new ProviderRepository($this, new Filesystem, $this->getCachedServicesPath()))
+                ->load($providers->collapse()->toArray());
+```
+追踪load方法(vendor\laravel\framework\src\Illuminate\Foundation\ProviderRepository.php)：
+```php
+public function load(array $providers)
+{
+    $manifest = $this->loadManifest();
+
+    // First we will load the service manifest, which contains information on all
+    // service providers registered with the application and which services it
+    // provides. This is used to know which services are "deferred" loaders.
+    if ($this->shouldRecompile($manifest, $providers)) {
+        $manifest = $this->compileManifest($providers);
+    }
+
+    // Next, we will register events to load the providers for each of the events
+    // that it has requested. This allows the service provider to defer itself
+    // while still getting automatically loaded when a certain event occurs.
+    foreach ($manifest['when'] as $provider => $events) {
+        $this->registerLoadEvents($provider, $events);
+    }
+
+    // We will go ahead and register all of the eagerly loaded providers with the
+    // application so their services can be registered with the application as
+    // a provided service. Then we will set the deferred service list on it.
+    foreach ($manifest['eager'] as $provider) {
+        $this->app->register($provider);
+    }
+
+    $this->app->addDeferredServices($manifest['deferred']);
+}
+```
+当代码运行到`$this->app->register($provider)`时，对于`App\Providers\EventServiceProvider`类，最终会运行`vendor/laravel/framework/src/Illuminate/Foundation/Support/Providers/EventServiceProvider::class`
+这个类的register方法：
+```
 /**
  * Register the application's event listeners.
  *
  * @return void
  */
-public function boot()
+public function register()
 {
-	$events = $this->getEvents();
+    $this->booting(function () {
+        $events = $this->getEvents();
 
-	foreach ($events as $event => $listeners) {
-		foreach (array_unique($listeners) as $listener) {
-			Event::listen($event, $listener);
-		}
-	}
+        foreach ($events as $event => $listeners) {
+            foreach (array_unique($listeners) as $listener) {
+                Event::listen($event, $listener);
+            }
+        }
 
-	foreach ($this->subscribe as $subscriber) {
-		Event::subscribe($subscriber);
-	}
+        foreach ($this->subscribe as $subscriber) {
+            Event::subscribe($subscriber);
+        }
+    });
 }
 ```
 
