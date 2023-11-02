@@ -1,4 +1,4 @@
-## 附录五：Container之resolveDependencies方法
+# 附录五：Container之resolveDependencies方法
 
 源文件路径：vendor\laravel\framework\src\Illuminate\Container\Container.php
 

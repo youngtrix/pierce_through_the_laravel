@@ -1,4 +1,4 @@
-## 第四章：艰难的开始
+# 第四章：艰难的开始
 
 继续看index.php后面的代码，
 
@@ -291,7 +291,7 @@ public static function getInstance()
 
 这里，我们看到一条比较生僻的php语句：`static::$instance = new static;`。其次，我们发现Container类的$instance变量设置成了静态变量，因此这是一个典型的单例实现(所有引用Container::getInstance()得到的实例，都指向同一个静态成员变量$instance)。
 
-### new static
+## new static
 
 在一个类中，常见的是new self()操作，代表返回自身类的实例。
 
@@ -329,7 +329,7 @@ new B()->create(); // 返回类B的实例
 
 也就是说，只需要将`new self()`改成`new static()`就行了。上面这种使用static关键字的语法，就是PHP5.3新加入的特性：**延迟静态绑定**，我们可以简单理解为：由调用者来决定static后的对象该指向谁(谁调用就指向谁)，和传统的static属性和方法不同，这里static指向的对象不能在编译阶段就确定下来，必须要等到执行阶段才能确定下来，所以叫"**延迟静态绑定**"。
 
-### make方法
+## make方法
 
 既然getInstance方法返回的是Container自身，那么找到has方法就很简单了，直接在Container.php中查找"function has"即可：
 

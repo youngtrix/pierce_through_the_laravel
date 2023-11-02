@@ -1,4 +1,4 @@
-## 第三章：实现自动加载
+# 第三章：实现自动加载
 ```php
 <?php
 use Illuminate\Contracts\Http\Kernel;

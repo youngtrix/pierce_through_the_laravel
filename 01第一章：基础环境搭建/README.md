@@ -1,11 +1,11 @@
-## 第一章：基础环境搭建
+# 第一章：基础环境搭建
 
 分析代码前，有必要主动告知大家本文分析的Laravel框架是哪个版本。以防有读者在核对代码时，发现作者引用的代码和其本地的代码版本不一致，由此引发不必要的误会。
 
 对于框架版本不一致的情况，强烈建议您在本地安装一个和作者分析的版本一致的Laravel应用。作者相信通读这个系列的文章后，对于新版本框架的代码，您可以依葫芦画瓢，依靠自己的力量去理解新旧框架之间的不同部分。
 
 下面是本文安装的Laravel框架版本和php版本：
-### Laravel
+## Laravel
 ```
 F:\WWW\blog>php artisan
 Laravel Framework 10.27.0
@@ -17,7 +17,7 @@ command [options] [arguments]
 ```
 > 如果读者本地的Laravel版本不是10.27.0，建议以git方式下载本书，同时切换到相应的分支(除main分支外，其他分支名称均包含Laravel版本号)，目前主分支main对应的Laravel版本号为：5.8.38。
 
-### PHP
+## PHP
 ```
 vagrant@homestead:~/code/blog$ php --version
 PHP 8.1.24 (cli) (built: Oct 19 2023 13:40:52) (NTS)
@@ -26,12 +26,12 @@ Zend Engine v4.1.24, Copyright (c) Zend Technologies
 ```
 > 笔者本机上采用的运行环境为Homestead, Homestead依赖Virtualbox虚拟机需要前置安装Vagrant、Virtualbox等软件。
 
-### composer安装
+## composer安装
 composer安装方法：`composer create-project --prefer-dist laravel/laravel blog "10.*"`
 
 > 上述命令中的blog，实际上是我们安装完laravel框架后项目的文件夹名称
 
-### .env配置
+## .env配置
 通常，当我们使用composer执行完上述命令后，blog应用并不是立即可用的，你还需要做一些必要的配置：
 
 源文件路径：blog/.env
@@ -103,7 +103,7 @@ VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 >
 >  由于我们分析的代码不涉及读取数据库的任何操作，上述配置仍可继续简化（将"DB_"为前缀的配置项全部删除或注释）
 
-### nginx站点配置
+## nginx站点配置
 
 ```nginx
 server {
@@ -135,7 +135,7 @@ server {
 
 【图1.2】
 
-### 关于Nginx重定向
+## 关于Nginx重定向
 
 通常，基于MVC模式的框架都是走统一的单一入口文件模式，而在web服务器中, 要实现这一点也很简单，利用web服务器的URL重定向功能，比如nginx提供的try files指令就能实现。我们来看一个Laravel站点的配置文件(nginx.conf)：
 
@@ -168,7 +168,7 @@ server {
 
 由此, 我们可以猜想Laravel框架在路由解析这一块使用的是分析`$_SERVER['REQUEST_URI']`结果, 和ThinkPHP3中分析path_info或者Phalcon中直接将uri放在_url=后作为重定向地址不同。
 
-### 思考
+## 思考
 
 1) 如果public下面有test/index/index.htm文件存在, 浏览器直接访问http://dev.blog.z/test/index 会发生什么？
 2) 关于本文末尾提到的路由解析猜想，如何验证？
