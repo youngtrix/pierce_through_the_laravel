@@ -1,4 +1,4 @@
-## 第八章：处理请求
+# 第八章：处理请求
 
 现在我们重新回到第二章，目前我们来到了第四阶段：处理HTTP请求。对应的是下面这几行代码：
 
@@ -512,7 +512,7 @@ protected $bootstrappers = [
 
 > vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php
 
-### LoadEnvironmentVariables
+## LoadEnvironmentVariables
 第一个类LoadEnvironmentVariables：
 
 ```php
@@ -544,7 +544,7 @@ public function bootstrap(Application $app)
 
 这个地方的方法，涉及到Dotenv类的相关使用，在此我们不做过多赘述。大家可以简单理解为加载配置文件并解析为全局常量即可。
 
-### LoadConfiguration
+## LoadConfiguration
 第二个类LoadConfiguration：
 
 ```php
@@ -677,7 +677,7 @@ return [
 
 因此两次对配置文件的处理，都是必要的，并不是多此一举。
 
-### HandleExceptions
+## HandleExceptions
 第三个类HandleExceptions：
 
 ```php
@@ -711,7 +711,7 @@ public function bootstrap(Application $app)
 
 这个方法中的代码浅显易懂，就是简单做一些错误及异常处理方面的工作。
 
-### RegisterFacades
+## RegisterFacades
 第四个类RegisterFacades：
 
 ```php
@@ -738,7 +738,7 @@ public function bootstrap(Application $app)
 
 这部分代码是处理Facade门面类和Alias别名类的，Laravel框架使用了门面模式和别名类来简化类的使用。
 
-### RegisterProviders
+## RegisterProviders
 第五个类RegisterProviders：
 
 ```php
@@ -760,7 +760,7 @@ public function bootstrap(Application $app)
 
 > RegisterFacades和RegisterProviders这两个类中的bootstrap方法，和Laravel中的"扩展自动注册"密切相关，这部分内容请参考【附录八】
 
-### BootProviders
+## BootProviders
 第六个类BootProviders：
 
 ```php
