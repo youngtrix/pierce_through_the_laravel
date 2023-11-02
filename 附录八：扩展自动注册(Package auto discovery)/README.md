@@ -1,4 +1,4 @@
-## 附录八：扩展自动注册(Package auto discovery)
+# 附录八：扩展自动注册(Package auto discovery)
 
 在进入探究 Laravel 包提供者与门面如何自动发现之前，让我们先粗浅剖析一下 PHP 中包的概念。
 
@@ -33,7 +33,7 @@ Composer 所做的工作在于，拉取你所需版本包，下载到  vendor �
 如果你看过"Spatie 包安装说明"你会发现，在继续下一步这前，项目配置必须注册服务提供者和一个门面，是一个很好的习惯，这个步骤由 Taylor Otwell 定义，只是一个非必要条件， Dries Vints，且达到无论何时你决定引入一个新包或移除包，服务提供者和门面皆可被自动发现。
 重温 Taylor 的新特性声明：在媒体上(https://medium.com/@taylorotwell/package-auto-discovery-in-laravel-5-5-ea9e3ab20518).
 
-### 什么是服务提供者和门面？
+## 什么是服务提供者和门面？
 
 > 服务提供者负责将事物绑定到 Laravel 的服务容器中，并通知 Laravel 在哪里加载包资源，例如视图，配置和本地化文件。-- laravel.com 文档
 
@@ -59,7 +59,7 @@ Laravel在主composer.json文件中订阅此事件：
 首先它调用`postAutoloadDump()`静态方法，此方法会清理缓存的服务或之前发现的包，另一个是它运行`package:discover`的artisan命令，这就是 Laravel 可以自动发现的秘密。
 
 
-### 包自动发现
+## 包自动发现
 
 `Illuminate\Foundation\Console\PackageDiscoverCommand` 在 `Illuminate\Foundation\PackageManifest` 类中调用 `build()` 方法，该类是 Laravel 发现已安装包的地方。
 
@@ -94,7 +94,7 @@ PackageManifest 在应用程序引导程序的早期注册到容器中，完全�
 
 你可以在数组中添加 * 以指示 laravel 完全停止自动注册。
 
-### 现在 Laravel 收集了有关扩展包的信息
+## 现在 Laravel 收集了有关扩展包的信息
 
 是的，一旦获得所需要的信息，它将在 `bootstrap/cache/packages.php` 中编写一个 PHP 文件：
 
@@ -114,7 +114,7 @@ PackageManifest 在应用程序引导程序的早期注册到容器中，完全�
 );
 ```
 
-### 包注册
+## 包注册
 
 Laravel 有两个 bootstrappers，在 HTTP 或控制台内核启动时使用：
 
