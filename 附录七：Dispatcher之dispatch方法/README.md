@@ -1,4 +1,4 @@
-##  附录七：Dispatcher之dispatch方法
+#  附录七：Dispatcher之dispatch方法
 
 源文件路径：vendor\laravel\framework\src\Illuminate\Events\Dispatcher.php
 

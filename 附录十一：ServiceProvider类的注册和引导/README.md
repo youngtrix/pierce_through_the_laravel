@@ -1,4 +1,4 @@
-## 附录十一：ServiceProvider类的注册和引导
+# 附录十一：ServiceProvider类的注册和引导
 服务提供器是所有 Laravel 应用程序引导中心。你的应用程序自定义的服务、第三方资源包提供的服务以及 Laravel 的所有核心服务都是通过服务提供器进行注册(register)和引导(boot)的。
 
 拿一个Laravel框架自带的服务提供器来举例子
@@ -34,7 +34,7 @@ class BroadcastServiceProvider extends ServiceProvider
 
 本文主要时来梳理一下laravel是如何注册、和初始化这些服务的，关于如何编写自己的服务提供器，可以参考[官方文档](https://d.laravel-china.org/docs/5.5/providers#deferred-providers)
 
-### BootStrap
+## BootStrap
 
 首先laravel注册和引导应用需要的服务是发生在寻找路由处理客户端请求之前的Bootstrap阶段的，在框架的入口文件里我们可以看到，框架在实例化了`Application`对象后从服务容器中解析出了`HTTP Kernel`对象
 
@@ -240,7 +240,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
           ...
     )
 
-### 事件触发时注册延迟服务提供器
+## 事件触发时注册延迟服务提供器
 
 延迟服务提供器除了利用 IOC 容器解析服务方式激活，还可以利用 Event 事件来激活：
 
@@ -254,7 +254,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
         });
     }
 
-### 即时注册服务提供器
+## 即时注册服务提供器
 需要即时注册的服务提供器的register方法由Application的register方法里来调用：
 
     class Application extends Container implements ApplicationContract, HttpKernelInterface
@@ -314,7 +314,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
 - 若框架已经加载注册完毕所有的服务容器，那么就启动服务提供器的 boot 函数，该函数由于是 call 调用，所以支持依赖注入。
 
 
-### 服务解析时注册延迟服务提供器
+## 服务解析时注册延迟服务提供器
 延迟服务提供器首先需要添加到 Application 中
 
     public function addDeferredServices(array $services)
@@ -422,7 +422,7 @@ class BroadcastServiceProvider extends ServiceProvider
 
 因此函数 `provides()` 返回的元素一定都是 `register()` 向 [服务容器][2]中绑定的类名或者别名。这样当我们利用App::make() 解析这些类名的时候，[服务容器][3]才会根据服务提供器的 register() 函数中绑定的实现类，正确解析出服务功能。
 
-### 启动Application
+## 启动Application
 Application的启动由类 `\Illuminate\Foundation\Bootstrap\BootProviders` 负责：
 
 ```

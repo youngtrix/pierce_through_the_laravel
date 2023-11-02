@@ -1,4 +1,4 @@
-## 附录六：Application之register方法
+# 附录六：Application之register方法
 
 源文件路径：vendor\laravel\framework\src\Illuminate\Foundation\Application.php
 
