@@ -1,4 +1,4 @@
-## 附录三：Container之resolve方法
+# 附录三：Container之resolve方法
 
 源文件路径：vendor\laravel\framework\src\Illuminate\Container\Container.php
 

@@ -1,4 +1,4 @@
-## 附录九：Route之findRoute方法
+# 附录九：Route之findRoute方法
 
 源文件路径：vendor\laravel\framework\src\Illuminate\Routing\Router.php
 
@@ -272,7 +272,7 @@ public function match(Request $request)
 
 要弄清楚这个问题，我们必须先弄清楚路由类的工作原理和工作过程：
 
->### 路由简介
+>## 路由简介
 >
 >路由是外界访问Laravel应用程序的通路或者说路由定义了Laravel的应用程序向外界提供服务的具体方式：通过指定的URI、HTTP请求方法以及路由参数（可选）才能正确访问到路由定义的处理程序。无论URI对应的处理程序是一个简单的闭包还是说是控制器方法没有对应的路由外界都访问不到他们，今天我们就来看看Laravel是如何来设计和实现路由的。
 >
@@ -291,7 +291,7 @@ public function match(Request $request)
 >
 >```
 >
->### 路由服务注册
+>## 路由服务注册
 >
 >router这个服务是在实例化应用程序Application时在构造方法里通过注册RoutingServiceProvider时绑定到服务容器里的：
 >
@@ -337,7 +337,7 @@ public function match(Request $request)
 >通过上面的代码我们知道了Route调用的静态方法都对应于`\Illuminate\Routing\Router`类里的方法，Router这个类里包含了与路由的注册、寻址、调度相关的方法。
 >下面我们从路由的注册、加载、寻址这几个阶段来看一下laravel里是如何实现这些的。
 >
->### 路由加载
+>## 路由加载
 >
 >注册路由前需要先加载路由文件，路由文件的加载是在`App\Providers\RouteServiceProvider`这个服务器提供者的boot方法里加载的:
 >
@@ -428,7 +428,7 @@ public function match(Request $request)
 >方法loadRoutes会调用map方法来加载路由文件里的路由，map这个函数在`App\Providers\RouteServiceProvider`类中，这个类继承自`Illuminate\Foundation\Support\Providers\RouteServiceProvider`。通过map方法我们能看到laravel将路由分为两个大组：api、web。这两个部分的路由分别写在两个文件中：routes/web.php、routes/api.php。
 >Laravel5.5里是把路由分别放在了几个文件里，之前的版本是在app/Http/routes.php文件里。放在多个文件里能更方便地管理API路由和与WEB路由。
 >
->### 路由注册
+>## 路由注册
 >
 >我们通常都是用Route这个Facade调用静态方法get, post, head, options, put, patch, delete......等来注册路由，上面我们也说了这些静态方法其实是调用了Router类里的方法：
 >
@@ -604,7 +604,7 @@ public function match(Request $request)
 >
 >这样就算注册好路由了。
 >
->### 路由寻址
+>## 路由寻址
 >
 >中间件的文章里我们说过HTTP请求在经过Pipeline通道上的中间件的前置操作后到达目的地：
 >
@@ -752,7 +752,7 @@ public function match(Request $request)
 >
 >一旦某个路由通过了全部的认证就将会被返回，接下来就要将请求对象URI里的路径参数绑定赋值给路由参数。
 >
->### 路由参数绑定
+>## 路由参数绑定
 >
 >```
 >class Route
