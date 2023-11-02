@@ -1,4 +1,4 @@
-## 附录二：Container之instance方法
+# 附录二：Container之instance方法
 
 源文件路径：vendor/laravel/framework/src/Illuminate/Container/Container.php
 

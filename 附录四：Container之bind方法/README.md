@@ -1,4 +1,4 @@
-## 附录四：Container之bind方法
+# 附录四：Container之bind方法
 
 源文件路径：vendor\laravel\framework\src\Illuminate\Container\Container.php
 
