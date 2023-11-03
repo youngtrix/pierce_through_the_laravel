@@ -151,7 +151,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
 }
 ```    
 可以看出，所有服务提供器都在配置文件 app.php 文件的 providers 数组中。类 ProviderRepository 负责所有的服务加载功能：
-
+```
     class ProviderRepository
     {
         public function load(array $providers)
@@ -169,9 +169,9 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
             $this->app->addDeferredServices($manifest['deferred']);
         }
     }
-
+```
 `loadManifest()`会加载服务提供器缓存文件`services.php`，如果框架是第一次启动时没有这个文件的，或者是缓存文件中的providers数组项与`config/app.php`里的providers数组项不一致都会编译生成`services.php`。
-
+```
     //判断是否需要编译生成services文件
     public function shouldRecompile($manifest, $providers)
     {
@@ -202,14 +202,14 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
     {
         return ['providers' => $providers, 'eager' => [], 'deferred' => []];
     }
-
+```
 - 缓存文件中 providers 放入了所有自定义和框架核心的服务。
 - 如果服务提供器是需要立即注册的，那么将会放入缓存文件中 eager 数组中。
 - 如果服务提供器是延迟加载的，那么其函数 provides() 通常会提供服务别名，这个服务别名通常是向服务容器中注册的别名，别名将会放入缓存文件的 deferred 数组中，与真正要注册的服务提供器组成一个键值对。
 - 延迟加载如果由 event 事件激活，那么可以在 when 函数中写入事件类，并写入缓存文件的 when 数组中。
 
 生成的缓存文件内容如下：
-
+```
     array (
 	    'providers' => 
 	    array (
@@ -239,11 +239,11 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
           ),
           ...
     )
-
+```
 ## 事件触发时注册延迟服务提供器
 
 延迟服务提供器除了利用 IOC 容器解析服务方式激活，还可以利用 Event 事件来激活：
-
+```
     protected function registerLoadEvents($provider, array $events)
     {
         if (count($events) < 1) {
@@ -253,10 +253,10 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
             $this->app->register($provider);
         });
     }
-
+```
 ## 即时注册服务提供器
 需要即时注册的服务提供器的register方法由Application的register方法里来调用：
-
+```
     class Application extends Container implements ApplicationContract, HttpKernelInterface
     {
         public function register($provider, $options = [], $force = false)
@@ -304,7 +304,7 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
             }
         }
     }
-
+```
 可以看出，服务提供器的注册过程：
 
 - 判断当前服务提供器是否被注册过，如注册过直接返回对象
@@ -316,18 +316,17 @@ class Application extends Container implements ApplicationContract, HttpKernelIn
 
 ## 服务解析时注册延迟服务提供器
 延迟服务提供器首先需要添加到 Application 中
-
+```
     public function addDeferredServices(array $services)
     {
         $this->deferredServices = array_merge($this->deferredServices, $services);
     }
-
+```
 我们之前说过，延迟服务提供器的激活注册有两种方法：事件与服务解析。
 
 当特定的事件被激发后，就会调用 Application 的 register 函数，进而调用服务提供器的 register 函数，实现服务的注册。
 
 当利用 Ioc 容器解析服务名时，例如解析服务名 BroadcastingFactory：
-
 ```
 class BroadcastServiceProvider extends ServiceProvider
 {
