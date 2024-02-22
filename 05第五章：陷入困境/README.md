@@ -367,7 +367,7 @@ require 'base.php';
 $reflector = new ReflectionClass(Student::class);
 $reflector_ = new ReflectionClass(C::class);
 
-$constructor = $reflector_->getConstructor();
+$constructor = $reflector->getConstructor();
 $constructor_ = $reflector_->getConstructor();
 var_dump($constructor);
 var_dump($constructor_);
